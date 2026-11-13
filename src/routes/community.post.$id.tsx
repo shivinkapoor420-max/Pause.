@@ -52,7 +52,7 @@ function PostPage() {
         <Link
           to="/u/$handle"
           params={{ handle: c.author_username }}
-          aria-label={`${c.author_name}\'s profile`}
+          aria-label={`${c.author_name}'s profile`}
         >
           <Avatar style={c.author_style} imageId={c.author_avatar} size={34} />
         </Link>
