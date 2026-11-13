@@ -369,6 +369,7 @@ function ChildCard({ child, hasPin }: { child: any; hasPin: boolean }) {
             </p>
           </div>
           <select
+            aria-label="Daily game time"
             value={controls.dailyMinutes}
             onChange={(e) => void save({ dailyMinutes: Number(e.target.value) })}
             className="rounded-xl border-2 border-border bg-card px-2 py-1 font-bold"

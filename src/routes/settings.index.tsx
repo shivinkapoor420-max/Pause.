@@ -224,6 +224,7 @@ function Settings() {
                 <p className="font-bold">Remind me after</p>
                 <input
                   type="time"
+                  aria-label="Reminder time"
                   value={prefs.reminderTime ?? "19:00"}
                   onChange={(e) =>
                     void patch(

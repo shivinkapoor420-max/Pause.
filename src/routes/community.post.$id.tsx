@@ -49,7 +49,11 @@ function PostPage() {
   const Comment = ({ c, depth }: { c: any; depth: number }) => (
     <li className={depth ? "ml-8 border-l-2 border-border pl-4" : ""}>
       <div className="flex gap-3 py-3">
-        <Link to="/u/$handle" params={{ handle: c.author_username }}>
+        <Link
+          to="/u/$handle"
+          params={{ handle: c.author_username }}
+          aria-label={`${c.author_name}\'s profile`}
+        >
           <Avatar style={c.author_style} imageId={c.author_avatar} size={34} />
         </Link>
         <div className="min-w-0 flex-1">

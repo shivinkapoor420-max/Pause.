@@ -172,7 +172,7 @@ export function AppShell({
   if (user.childMode) {
     // 4–7 child mode: no navigation, no notifications — just big friendly buttons.
     return (
-      <div className="relative min-h-dvh">
+      <div className="relative min-h-dvh overflow-x-clip">
         <div className="aurora" aria-hidden="true" />
         <header className="mx-auto flex max-w-4xl items-center justify-between px-4 pt-4">
           <Link
@@ -200,7 +200,7 @@ export function AppShell({
     b === "messages" ? unread.messages : b === "notifications" ? unread.notifications : 0;
 
   return (
-    <div className="relative min-h-dvh">
+    <div className="relative min-h-dvh overflow-x-clip">
       <a
         href="#main"
         className="sr-only z-50 rounded-full bg-card px-4 py-2 font-bold focus:not-sr-only focus:fixed focus:top-3 focus:left-3"

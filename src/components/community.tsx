@@ -293,7 +293,11 @@ export function PostCard({
     >
       <header className="flex items-start gap-3">
         {post.author_username ? (
-          <Link to="/u/$handle" params={{ handle: post.author_username }}>
+          <Link
+            to="/u/$handle"
+            params={{ handle: post.author_username }}
+            aria-label={`${post.author_name}'s profile`}
+          >
             <Avatar style={post.author_style} imageId={post.author_avatar} size={44} />
           </Link>
         ) : (

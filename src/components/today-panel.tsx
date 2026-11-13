@@ -194,6 +194,7 @@ function Challenges() {
             <div
               className="mt-2 h-2.5 overflow-hidden rounded-full bg-card"
               role="progressbar"
+              aria-label={c.title}
               aria-valuenow={Math.round(c.progress * 100)}
               aria-valuemin={0}
               aria-valuemax={100}
