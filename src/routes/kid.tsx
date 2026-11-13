@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { AppShell } from "@/components/app-shell";
+import { LocationShare } from "@/components/location-share";
 import { buildGarden } from "@/lib/garden";
 import { api } from "@/lib/api";
 import { speak, today, useApp, type Sky } from "@/lib/app-state";
@@ -320,6 +321,10 @@ function KidHome() {
           ))}
         </div>
       </section>
+
+      <div className="mt-6">
+        <LocationShare big />
+      </div>
 
       <div className="mt-10 text-center">
         <button

@@ -1,4 +1,6 @@
+import { useQuery } from "@tanstack/react-query";
 import raw from "@/data/therapists.json";
+import { api } from "@/lib/api";
 import type { AgeBand } from "@/lib/app-state";
 
 export type Therapist = {
@@ -37,104 +39,67 @@ export const directory = raw as Therapist[];
  * These are therapists who opted in directly, so a real email and a real
  * consent to the relationship exist. It starts small on purpose.
  */
-export const partners: Therapist[] = [
-  {
-    id: "partner-okonkwo",
-    name: "Dr. Ada Okonkwo",
-    credentials: "PhD, Licensed Psychologist",
-    jobTitle: "Psychologist",
-    practiceName: "Northside Neurodiversity Practice",
-    city: "Chicago",
-    state: "IL",
-    stateName: "Illinois",
-    phone: "(312) 555-0142",
+/**
+ * The partner network now lives in the database: clinicians apply through the
+ * therapist portal and an administrator verifies their licence before they
+ * appear here. (The earlier hard-coded sample partners were fictional and have
+ * been removed so nobody believes they sent a brief to a real person.)
+ */
+export const partners: Therapist[] = [];
+
+type ApiPartner = {
+  id: string;
+  name: string;
+  credentials: string;
+  practice: string;
+  bio: string;
+  city: string;
+  country: string;
+  issues: string[];
+  ageGroups: string[];
+  languages: string[];
+  online: boolean;
+  inPerson: boolean;
+  licenseRegion: string;
+};
+
+export function toTherapist(p: ApiPartner): Therapist {
+  return {
+    id: p.id,
+    name: p.name,
+    credentials: p.credentials,
+    jobTitle: p.credentials,
+    practiceName: p.practice,
+    city: p.city,
+    state: p.licenseRegion,
+    stateName: p.country || p.licenseRegion,
+    phone: "",
     profileUrl: "",
     photoUrl: "",
-    bio: "Adult autism and ADHD identification, plus anxiety and burnout. Works slowly, writes plainly, and treats neurodivergence as a difference rather than a deficit.",
-    issues: ["Anxiety", "ADHD", "Autism", "Depression", "Stress", "Self Esteem"],
-    ageGroups: ["Teen", "Adults", "Elders (65+)"],
-    insurance: ["Aetna", "BlueCross and BlueShield", "Cigna", "Out of Network"],
-    modalities: ["Individuals", "Online"],
-    languages: ["English"],
+    bio: p.bio,
+    issues: p.issues,
+    ageGroups: p.ageGroups,
+    insurance: [],
+    modalities: [p.online ? "Online" : "", p.inPerson ? "In person" : ""].filter(Boolean),
+    languages: p.languages,
     acceptingNewClients: true,
-    online: true,
-    inPerson: true,
-    slidingScale: true,
-    sessionCost: 190,
-    yearsInPractice: 14,
-    partner: true,
-    email: "intake@northside-neuro.example",
-  },
-  {
-    id: "partner-vasquez",
-    name: "Marisol Vásquez",
-    credentials: "LCSW",
-    jobTitle: "Clinical Social Work/Therapist",
-    practiceName: "Small Weather Counseling",
-    city: "Austin",
-    state: "TX",
-    stateName: "Texas",
-    phone: "(512) 555-0198",
-    profileUrl: "",
-    photoUrl: "",
-    bio: "Play-based work with young children and their caregivers. Sensory needs, meltdowns, school transitions and family conflict, always with the caregiver in the room.",
-    issues: [
-      "Behavioral Issues",
-      "School Issues",
-      "Family Conflict",
-      "Autism",
-      "Anxiety",
-      "Emotional Disturbance",
-    ],
-    ageGroups: ["Toddlers Preschoolers 0 to 6", "Children (6 to 10)", "Preteen"],
-    insurance: ["Medicaid", "Aetna", "UnitedHealthcare UHC | UBH", "Sliding scale"],
-    modalities: ["Individuals", "Family"],
-    languages: ["English", "Spanish"],
-    acceptingNewClients: true,
-    online: true,
-    inPerson: true,
-    slidingScale: true,
-    sessionCost: 120,
-    yearsInPractice: 9,
-    partner: true,
-    email: "hello@smallweather.example",
-  },
-  {
-    id: "partner-brand",
-    name: "Toby Brand",
-    credentials: "LPC, NCC",
-    jobTitle: "Licensed Professional Counselor",
-    practiceName: "Quiet Room Therapy",
-    city: "Portland",
-    state: "OR",
-    stateName: "Oregon",
-    phone: "(503) 555-0117",
-    profileUrl: "",
-    photoUrl: "",
-    bio: "Teens and young adults. Low-pressure sessions, no forced eye contact, and a lot of patience with the weeks where nothing much gets said.",
-    issues: [
-      "Anxiety",
-      "Depression",
-      "Peer Relationships",
-      "Self Esteem",
-      "Trauma and PTSD",
-      "Suicidal Ideation",
-      "ADHD",
-    ],
-    ageGroups: ["Preteen", "Teen", "Adults"],
-    insurance: ["Kaiser", "Providence", "Out of Network"],
-    modalities: ["Individuals", "Online"],
-    languages: ["English"],
-    acceptingNewClients: true,
-    online: true,
-    inPerson: false,
+    online: p.online,
+    inPerson: p.inPerson,
     slidingScale: false,
-    sessionCost: 140,
-    yearsInPractice: 7,
+    sessionCost: null,
+    yearsInPractice: null,
     partner: true,
-    email: "intake@quietroom.example",
-  },
-];
+  };
+}
+
+/** Verified partner therapists who see this member's age group (from the server). */
+export function usePartners() {
+  return useQuery({
+    queryKey: ["partners"],
+    queryFn: async () =>
+      (await api<{ partners: ApiPartner[] }>("/therapists/partners")).partners.map(toTherapist),
+  });
+}
 
 /** The dataset's own age groups, mapped onto the app's three bands. */
 const bandAgeGroups: Record<AgeBand, string[]> = {

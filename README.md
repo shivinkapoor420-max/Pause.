@@ -162,10 +162,26 @@ Every community, messaging, leaderboard and admin endpoint checks age and role o
 - **Founder name:** edit `FOUNDER_NAME` at the top of `src/routes/about.tsx`. The story text is in the same file.
 - **Crisis numbers:** see `CrisisBanner` in `src/components/app-shell.tsx`.
 
+## Notifications and reminders
+
+- **In-app and real-time:** delivered instantly over the live connection.
+- **Browser push (Web Push):** members switch it on in **Settings → Notifications on this device**. It needs no third-party service and no keys. VAPID keys are generated once and stored in the database, or you can set `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY`. Pushes carry no content: the service worker (`public/sw.js`) fetches the notification over the member's own session, so nothing personal passes through Google's, Apple's or Mozilla's push servers.
+- **Daily check-in reminders:** a built-in scheduler (`src/server/scheduler.ts`, every 10 minutes) sends at most one gentle reminder a day, at each member's chosen local time, and only if they haven't checked in yet. Email reminders are opt-in. 4–7s never get reminders. The same scheduler ends expired cancelled subscriptions and cleans up old sessions and tokens. Set `DISABLE_SCHEDULER=true` to turn it off.
+
+## Therapist partner network
+
+- Licensed clinicians apply at **/portal**. An administrator checks the licence with the issuing body, then approves them in **Admin → Therapists**.
+- Members review their self-report brief and send it to a verified partner. It lands in the therapist's secure portal inbox.
+- The therapist gets an email heads-up that **doesn't contain the brief**, then confirms receipt, and the member is notified.
+- Member emails are never shared; members include contact details in the brief only if they choose to.
+- The original site's four sample "partner" therapists were fictional, so they've been removed.
+
+> ⚠️ **The therapist directory** (`src/data/therapists.json`, 100 US listings) was scraped from Psychology Today. It includes real clinicians' names, phone numbers and bios, and loads their photos from Psychology Today's servers. Republishing it may breach Psychology Today's terms and those clinicians' expectations. It's also US-only. Consider replacing it with your own verified partner network, or with a licensed data source, before launch.
+
 ## Known gaps and next steps
 
-- Payment adapters have not yet been run against real Stripe or Razorpay accounts (see above).
-- Push notifications (mobile and web push) and scheduled reminder emails aren't sent yet. In-app and real-time notifications work.
-- Rate limiting is per-instance (in-memory). Use Redis when scaling horizontally.
-- The therapist directory and portal screens from the original site still store their data in the user's private profile blob, not dedicated tables.
+- Payment adapters haven't been run against real Stripe or Razorpay accounts (see above).
+- Rate limiting is per-instance (in-memory). Use Redis when running several instances.
+- Media is stored in Postgres. Move it to object storage as you grow.
 - Age verification is self-declared. Consider a verification provider for the adult community.
+- Web Push delivery is verified up to correct VAPID signing; test it on your deployed https domain, because push doesn't work on plain http, except localhost.

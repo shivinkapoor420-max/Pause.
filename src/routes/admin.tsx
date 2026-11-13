@@ -36,7 +36,8 @@ type Tab =
   | "communities"
   | "games"
   | "subscriptions"
-  | "audit";
+  | "audit"
+  | "therapists";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin — Pause." }, { name: "robots", content: "noindex" }] }),
@@ -66,6 +67,7 @@ function Admin() {
     ...(isAdmin
       ? ([
           { id: "contact", label: "Contact" },
+          { id: "therapists", label: "Therapists" },
           { id: "users", label: "Users" },
           { id: "communities", label: "Communities" },
           { id: "games", label: "Games" },
@@ -91,6 +93,7 @@ function Admin() {
       {tab === "games" && <GamesAdmin />}
       {tab === "subscriptions" && <Subs />}
       {tab === "audit" && <Audit />}
+      {tab === "therapists" && <TherapistsAdmin />}
     </AppShell>
   );
 }
@@ -722,5 +725,105 @@ function Audit() {
         </li>
       ))}
     </ul>
+  );
+}
+
+function TherapistsAdmin() {
+  const [status, setStatus] = useState<"pending" | "verified" | "paused" | "rejected">("pending");
+  const q = useQuery({
+    queryKey: ["admin-therapists", status],
+    queryFn: () => api(`/admin/therapists?status=${status}`),
+  });
+  const act = async (id: string, action: string) => {
+    const note =
+      action === "reject" || action === "pause"
+        ? (prompt("Note to the clinician (optional):") ?? "")
+        : "";
+    try {
+      await api(`/admin/therapists/${id}`, { body: { action, note } });
+      toast.success("Updated");
+      void q.refetch();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed");
+    }
+  };
+  return (
+    <div>
+      <Tabs
+        className="mb-4 w-fit"
+        value={status}
+        onChange={setStatus}
+        items={[
+          { id: "pending", label: "Pending" },
+          { id: "verified", label: "Verified" },
+          { id: "paused", label: "Paused" },
+          { id: "rejected", label: "Rejected" },
+        ]}
+      />
+      <p className="mb-4 text-sm text-muted-foreground">
+        Check every licence with the issuing body (e.g. the RCI register in India, or the state
+        licensing board) before verifying. Verified clinicians receive members' self-report briefs.
+      </p>
+      {q.isLoading ? (
+        <LoadingCards n={2} />
+      ) : q.data.therapists.length === 0 ? (
+        <EmptyState emoji="🩺" title="Nobody here" />
+      ) : (
+        <ul className="space-y-3">
+          {q.data.therapists.map((t: any) => (
+            <li key={t.id}>
+              <Card>
+                <p className="font-display text-xl font-bold">
+                  {t.name}{" "}
+                  <span className="text-sm font-semibold text-muted-foreground">
+                    {t.credentials}
+                  </span>
+                </p>
+                <p className="mt-1 text-sm">
+                  Licence <strong>{t.license_number}</strong> · {t.license_region} ·{" "}
+                  {t.practice || "no practice listed"} ·{" "}
+                  {[t.city, t.country].filter(Boolean).join(", ")}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Work email {t.email} · account {t.account_email} · sees{" "}
+                  {t.age_groups.map((a: string) => ageName[a]).join(", ")} · {t.briefs} briefs
+                  received
+                </p>
+                {t.bio && <p className="mt-2 text-sm">{t.bio}</p>}
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {status !== "verified" && (
+                    <PillButton
+                      variant="forest"
+                      className="min-h-9 px-4 py-1.5 text-sm"
+                      onClick={() => void act(t.id, status === "paused" ? "reinstate" : "verify")}
+                    >
+                      {status === "paused" ? "Reinstate" : "Verify licence"}
+                    </PillButton>
+                  )}
+                  {status === "pending" && (
+                    <PillButton
+                      variant="outline"
+                      className="min-h-9 px-4 py-1.5 text-sm"
+                      onClick={() => void act(t.id, "reject")}
+                    >
+                      Reject
+                    </PillButton>
+                  )}
+                  {status === "verified" && (
+                    <PillButton
+                      variant="outline"
+                      className="min-h-9 px-4 py-1.5 text-sm"
+                      onClick={() => void act(t.id, "pause")}
+                    >
+                      Pause listing
+                    </PillButton>
+                  )}
+                </div>
+              </Card>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }

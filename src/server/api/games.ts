@@ -31,6 +31,15 @@ route("GET", "/games", async ({ request }) => {
   return {
     premium,
     gamesAllowed: !(user.guardian_id && controls.games === false),
+    // Gentle daily guide for children (set by their guardian); shown, never a hard lock.
+    dailyMinutes: user.guardian_id
+      ? ((controls as { dailyMinutes?: number }).dailyMinutes ?? 30)
+      : null,
+    minutesToday: Math.round(
+      (((
+        await sql`select coalesce(sum(duration_s),0)::int as s from game_results where user_id = ${user.id} and created_at > current_date`
+      )[0]?.["s"] as number) ?? 0) / 60,
+    ),
     games: games
       .filter((g) => g.ages.includes(user.age_group) && overrides.get(g.id)?.enabled !== false)
       .map((g) => {

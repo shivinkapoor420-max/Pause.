@@ -1,6 +1,6 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AppShell, PillButton } from "@/components/app-shell";
 import {
@@ -17,6 +17,7 @@ import {
 import { api } from "@/lib/api";
 import { useSession } from "@/lib/session";
 import { cn } from "@/lib/utils";
+import { currentPushSubscription, disablePush, enablePush, pushSupported } from "@/lib/push";
 
 export const Route = createFileRoute("/settings/")({
   head: () => ({ meta: [{ title: "Settings — Pause." }] }),
@@ -194,16 +195,51 @@ function Settings() {
           <Link to="/profile" className="mt-3 inline-block font-bold underline">
             Accessibility, calm mode & display →
           </Link>
+          {adult && (
+            <Link to="/portal" className="mt-2 block font-bold underline">
+              Are you a licensed therapist? Join the partner network →
+            </Link>
+          )}
         </Card>
 
         <Card>
           <h2 className="font-display text-xl font-bold">Notifications</h2>
           <div className="divide-y divide-border">
+            <PushToggle />
             <Toggle
               checked={prefs.notifyReminders !== false}
               onChange={(v) => void patch({ prefs: { notifyReminders: v } })}
               label="Gentle check-in reminders"
+              description="At most once a day, only if you haven't checked in yet."
             />
+            {prefs.notifyReminders !== false && (
+              <div className="flex flex-wrap items-center justify-between gap-3 py-3">
+                <p className="font-bold">Remind me after</p>
+                <input
+                  type="time"
+                  value={prefs.reminderTime ?? "19:00"}
+                  onChange={(e) =>
+                    void patch(
+                      {
+                        prefs: {
+                          reminderTime: e.target.value,
+                          tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                        },
+                      },
+                      "Reminder time saved",
+                    )
+                  }
+                  className="rounded-xl border-2 border-border bg-card px-3 py-1.5 font-bold"
+                />
+              </div>
+            )}
+            {user.email && prefs.notifyReminders !== false && (
+              <Toggle
+                checked={prefs.emailReminders === true}
+                onChange={(v) => void patch({ prefs: { emailReminders: v } })}
+                label="Also remind me by email"
+              />
+            )}
             <Toggle
               checked={prefs.notifyAchievements !== false}
               onChange={(v) => void patch({ prefs: { notifyAchievements: v } })}
@@ -396,6 +432,9 @@ function PasswordForm() {
 
 function DeleteAccount({ onDone }: { onDone: () => void }) {
   const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (window.location.hash === "#delete") setOpen(true);
+  }, []);
   const [password, setPassword] = useState("");
   const [error, setError] = useState<unknown>(null);
   if (!open)
@@ -439,5 +478,45 @@ function DeleteAccount({ onDone }: { onDone: () => void }) {
         Delete everything
       </PillButton>
     </form>
+  );
+}
+
+function PushToggle() {
+  const [on, setOn] = useState(false);
+  const [supported, setSupported] = useState(true);
+  useEffect(() => {
+    setSupported(pushSupported());
+    void currentPushSubscription().then((s) => setOn(!!s));
+  }, []);
+  if (!supported)
+    return (
+      <p className="py-3 text-sm text-muted-foreground">
+        This browser doesn't support notifications.
+      </p>
+    );
+  return (
+    <Toggle
+      checked={on}
+      onChange={async (v) => {
+        try {
+          if (v) {
+            const ok = await enablePush();
+            setOn(ok);
+            toast[ok ? "success" : "error"](
+              ok
+                ? "Notifications on for this device"
+                : "Notifications were blocked in your browser settings",
+            );
+          } else {
+            await disablePush();
+            setOn(false);
+          }
+        } catch (e) {
+          toast.error(e instanceof Error ? e.message : "Couldn't change notifications");
+        }
+      }}
+      label="Notifications on this device"
+      description="Notification text is fetched privately from Pause — it never passes through push servers."
+    />
   );
 }

@@ -96,6 +96,8 @@ export async function notify(
   if (kind !== "security" && kind !== "subscription" && prefs[prefKey[kind]] === false) return;
   await sql`insert into notifications (user_id, kind, title, body, link) values (${userId}, ${kind}, ${title}, ${body}, ${link})`;
   await publish({ users: [userId], type: "notification" });
+  // Wake the user's browsers (Web Push). Fire-and-forget so it never slows a request.
+  void import("./push").then((m) => m.pushTo(userId));
 }
 
 // ---------------------------------------------------------------- moderation

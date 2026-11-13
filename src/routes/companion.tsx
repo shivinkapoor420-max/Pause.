@@ -72,7 +72,9 @@ function CompanionPage() {
         <div className="card-soft p-8 text-center">
           <p className="text-6xl">🌿</p>
           <h2 className="mt-3 font-display text-2xl font-bold">Pip says hi!</h2>
-          <p className="mt-2 text-muted-foreground">Let's play a calm game or read a story together instead.</p>
+          <p className="mt-2 text-muted-foreground">
+            Let's play a calm game or read a story together instead.
+          </p>
         </div>
       </AppShell>
     );

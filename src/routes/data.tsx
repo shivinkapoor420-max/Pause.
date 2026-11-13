@@ -1,3 +1,5 @@
+import { toast } from "sonner";
+import { api } from "@/lib/api";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AppShell, PillButton, ScreeningNote } from "@/components/app-shell";
 import { CornerBotanicals } from "@/components/illustrations";
@@ -159,17 +161,12 @@ function DataScreen() {
                   "Delete all check-ins, journal entries, conversations and notes? Your name and settings stay.",
                 )
               )
-                update({
-                  moods: [],
-                  checkins: [],
-                  journal: [],
-                  companion: [],
-                  toolUse: {},
-                  routineDone: {},
-                  therapistNotes: {},
-                  sentBriefs: [],
-                  riskFlagged: false,
-                });
+                void api("/me/wipe", { method: "POST" })
+                  .then(() => {
+                    toast.success("Your data has been deleted.");
+                    window.location.reload();
+                  })
+                  .catch((e) => toast.error(e.message));
             }}
           >
             Delete my data
@@ -177,12 +174,7 @@ function DataScreen() {
           <PillButton
             variant="coral"
             onClick={() => {
-              if (
-                window.confirm("Delete the account and everything in it? This can't be undone.")
-              ) {
-                reset();
-                navigate({ to: "/" });
-              }
+              navigate({ to: "/settings", hash: "delete" });
             }}
           >
             Delete my account

@@ -112,6 +112,11 @@ export function PublicLayout({ children }: { children: ReactNode }) {
                   Community guidelines
                 </Link>
               </li>
+              <li>
+                <Link to="/portal" className="hover:text-foreground">
+                  For therapists
+                </Link>
+              </li>
             </ul>
           </div>
         </div>

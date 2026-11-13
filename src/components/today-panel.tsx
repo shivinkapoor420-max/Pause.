@@ -125,6 +125,7 @@ export function TodayPanel() {
           </Link>
         </div>
       </section>
+      <Challenges />
       <nav aria-label="Quick actions" className="grid grid-cols-4 gap-2 sm:col-span-2">
         {actions.map((a, i) => (
           <motion.div
@@ -160,5 +161,56 @@ function QuestIcon({ done, icon: Icon }: { done: boolean; icon: typeof Sun }) {
     >
       {done ? <Check className="size-4" /> : <Icon className="size-4" />}
     </span>
+  );
+}
+
+/** Collective weekly goals for the user's age group — everyone contributes, nobody is ranked. */
+function Challenges() {
+  const q = useQuery({
+    queryKey: ["challenges"],
+    queryFn: () =>
+      api<{ challenges: any[]; event: { title: string; body: string; emoji: string } }>(
+        "/challenges",
+      ),
+  });
+  if (!q.data) return null;
+  return (
+    <section className="card-soft p-5 sm:col-span-2" aria-labelledby="together">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h3 id="together" className="font-display text-xl font-bold">
+          Together this week
+        </h3>
+        <span className="rounded-full bg-mustard px-3 py-1 text-xs font-black">
+          {q.data.event.emoji} {q.data.event.title}
+        </span>
+      </div>
+      <p className="mt-1 text-sm text-muted-foreground">{q.data.event.body}</p>
+      <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+        {q.data.challenges.map((c) => (
+          <li key={c.id} className="rounded-2xl bg-muted p-4">
+            <p className="text-sm font-bold">
+              <span aria-hidden="true">{c.emoji}</span> {c.title}
+            </p>
+            <div
+              className="mt-2 h-2.5 overflow-hidden rounded-full bg-card"
+              role="progressbar"
+              aria-valuenow={Math.round(c.progress * 100)}
+              aria-valuemin={0}
+              aria-valuemax={100}
+            >
+              <motion.div
+                className="h-full rounded-full bg-forest"
+                initial={{ width: 0 }}
+                animate={{ width: `${Math.max(2, c.progress * 100)}%` }}
+                transition={{ duration: 1 }}
+              />
+            </div>
+            <p className="mt-1.5 text-xs font-bold text-muted-foreground">
+              {c.total.toLocaleString()} / {c.goal.toLocaleString()} {c.unit} · you added {c.mine}
+            </p>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

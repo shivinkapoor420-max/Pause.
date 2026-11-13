@@ -432,6 +432,114 @@ async function main() {
     );
   }
 
+  console.log("\nJournal media, data wipe, challenges, push");
+  const tinyPng =
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
+  r = await alice.req("POST", "/journal", { kind: "drawing", prompt: "Draw it", body: tinyPng });
+  check("drawing saved to journal", r.status === 200, r.data);
+  r = await alice.req("POST", "/journal", {
+    kind: "voice",
+    prompt: "Say it",
+    body: "data:audio/webm;base64,GkXfo0AAAAAAAAA=",
+  });
+  check("voice note saved to journal", r.status === 200, r.data);
+  r = await alice.req("POST", "/journal", { kind: "drawing", prompt: "x", body: "not an image" });
+  check("fake drawing rejected", r.status === 400);
+  r = await alice.req("POST", "/journal", {
+    kind: "gratitude",
+    prompt: "Three good things",
+    body: "• tea\n• sun\n• a call",
+  });
+  check("gratitude entry saved", r.status === 200);
+  r = await alice.req("GET", "/journal/suggest");
+  check("journal prompt suggestion", r.status === 200 && r.data.prompt.length > 5, r.data);
+  r = await sam.req("GET", "/challenges");
+  check(
+    "teen group challenges",
+    r.status === 200 && r.data.challenges.length === 2 && r.data.event.title,
+    r.data,
+  );
+  r = await alice.req("GET", "/push/key");
+  check(
+    "VAPID public key generated (no keys needed)",
+    r.status === 200 && r.data.publicKey.length > 80,
+    r.data,
+  );
+  r = await alice.req("POST", "/push/subscribe", {
+    endpoint: "http://insecure.example/x",
+    keys: { p256dh: "a", auth: "b" },
+  });
+  check("non-https push endpoint rejected", r.status === 400);
+  r = await sam.req("GET", "/location/status");
+  check("location off for teens", r.data.enabled === false);
+  r = await alice.req("GET", "/games");
+  check("adult has no game-time limit", r.data.dailyMinutes === null, r.data.dailyMinutes);
+
+  console.log("\nTherapist partner network");
+  r = await alice.req("GET", "/therapists/partners");
+  check("no fictional partners", r.status === 200 && Array.isArray(r.data.partners), r.data);
+  const doc = new Client("doc");
+  await doc.req("POST", "/auth/signup", {
+    email: `doc_${stamp}@test.dev`,
+    password: "doctor-pass-1",
+    username: `doc_${stamp}`,
+    displayName: "Doc",
+    birthDate: "1980-01-01",
+    acceptTerms: true,
+  });
+  r = await doc.req("POST", "/portal/apply", {
+    name: `Dr Test ${stamp}`,
+    credentials: "M.Phil Clinical Psychology",
+    licenseNumber: "RCI-12345",
+    licenseRegion: "RCI India",
+    email: `doc_${stamp}@test.dev`,
+    ageGroups: ["adult", "teen"],
+  });
+  check("therapist applies", r.status === 200 && r.data.status === "pending", r.data);
+  r = await doc.req("GET", "/portal/briefs");
+  check("unverified therapist can't read briefs", r.status === 403);
+  r = await alice.req("GET", "/therapists/partners");
+  const unlisted = !r.data.partners.some((p) => p.name === `Dr Test ${stamp}`);
+  check("pending therapist not listed", unlisted);
+  if (process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD) {
+    const admin = new Client("admin3");
+    await admin.req("POST", "/auth/login", {
+      login: process.env.ADMIN_EMAIL,
+      password: process.env.ADMIN_PASSWORD,
+    });
+    const pending = (
+      await admin.req("GET", "/admin/therapists?status=pending")
+    ).data.therapists.find((t) => t.name === `Dr Test ${stamp}`);
+    r = await admin.req("POST", `/admin/therapists/${pending.id}`, { action: "verify" });
+    check("admin verifies licence", r.status === 200, r.data);
+    r = await alice.req("GET", "/therapists/partners");
+    const partner = r.data.partners.find((p) => p.name === `Dr Test ${stamp}`);
+    check("verified therapist listed", !!partner);
+    r = await alice.req("POST", "/briefs", {
+      therapistId: partner.id,
+      kind: "brief",
+      body: "I've been feeling overwhelmed at work for a few weeks and would like to talk.",
+    });
+    check("member sends brief", r.status === 200, r.data);
+    r = await doc.req("GET", "/portal/briefs");
+    check(
+      "therapist sees brief, without member email",
+      r.data.briefs?.length === 1 && !JSON.stringify(r.data).includes(`alice_${stamp}@`),
+      r.data,
+    );
+    r = await doc.req("POST", `/portal/briefs/${r.data.briefs[0].id}/confirm`);
+    check("therapist confirms receipt", r.status === 200);
+    r = await alice.req("GET", "/briefs/mine");
+    check("member sees confirmation", !!r.data.briefs?.[0]?.confirmed_at, r.data);
+  }
+  r = await alice.req("POST", "/me/wipe");
+  r = await alice.req("GET", "/me/state");
+  check(
+    "wipe deletes wellness data but keeps account",
+    r.data.moods.length === 0 && r.data.journal.length === 0,
+    r.data,
+  );
+
   console.log(`\n${passed} passed, ${failed} failed`);
   process.exit(failed ? 1 : 0);
 }

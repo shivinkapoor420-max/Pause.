@@ -99,7 +99,9 @@ route("PATCH", "/me", async ({ request }) => {
           leaderboardOptIn: z.boolean(),
           leaderboardAlias: z.string().max(24),
           theme: z.string().max(20),
-          reminderTime: z.string().max(5),
+          reminderTime: z.string().regex(/^\d{2}:\d{2}$/),
+          tz: z.string().max(60),
+          emailReminders: z.boolean(),
         })
         .partial()
         .optional(),
@@ -173,18 +175,26 @@ route("POST", "/journal", async ({ request }) => {
       sky: sky.optional(),
     }),
   );
-  if (input.kind !== "drawing" && input.body.length > 20000) throw bad("That entry is too long.");
+  const media = input.kind === "drawing" || input.kind === "voice";
+  if (!media && input.body.length > 20000) throw bad("That entry is too long.");
   if (
     input.kind === "drawing" &&
     !/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(input.body)
   )
     throw bad("Drawing must be an image.");
+  if (
+    input.kind === "voice" &&
+    !/^data:audio\/(webm|ogg|mp4|mpeg)(;codecs=[a-z0-9.,]+)?;base64,[A-Za-z0-9+/=]+$/.test(
+      input.body,
+    )
+  )
+    throw bad("Voice note must be an audio recording.");
   const controls = (user.prefs["controls"] as { journal?: boolean } | undefined) ?? {};
   if (user.guardian_id && controls.journal === false)
     throw forbidden("Journaling is switched off for this profile.");
   const sql = await db();
   const [row] = await sql`insert into journal_entries (user_id, kind, prompt, body, sky)
-    values (${user.id}, ${input.kind}, ${clean(input.prompt, 400)}, ${input.kind === "drawing" ? input.body : clean(input.body, 20000)}, ${input.sky ?? null})
+    values (${user.id}, ${input.kind}, ${clean(input.prompt, 400)}, ${media ? input.body : clean(input.body, 20000)}, ${input.sky ?? null})
     returning id, created_at`;
   await awardXp(user.id, 10, "journal");
   await checkAchievements(user.id);
@@ -441,4 +451,65 @@ route("GET", "/me/today", async ({ request }) => {
     progress: (xp - thisLevel) / (nextLevel - thisLevel),
     nextLevelXp: nextLevel,
   };
+});
+
+/** Gentle journal prompt for teens/adults. Uses AI if configured; never sends journal text — only recent mood tags. */
+const curatedPrompts: Record<string, string[]> = {
+  bright: [
+    "What made today feel lighter? How could you invite more of it?",
+    "Who would you like to thank today, and for what?",
+  ],
+  okay: [
+    "What's one thing you handled well this week?",
+    "What does 'enough' look like for you today?",
+  ],
+  low: [
+    "What would you say to a friend feeling exactly like this?",
+    "What's one tiny thing that might help, even 2% ?",
+  ],
+  stormy: [
+    "Name what's loudest right now. Then name one thing that's steady.",
+    "What do you need most in the next hour — rest, company, space or comfort?",
+  ],
+};
+route("GET", "/journal/suggest", async ({ request }) => {
+  const { user } = await requireUser(request);
+  const sql = await db();
+  const recent =
+    await sql`select sky, tags from mood_entries where user_id = ${user.id} order by day desc limit 3`;
+  const sky = (recent[0]?.["sky"] as string) ?? "partly";
+  const bucket =
+    sky === "sunny"
+      ? "bright"
+      : sky === "partly" || sky === "cloudy"
+        ? "okay"
+        : sky === "rainy"
+          ? "low"
+          : "stormy";
+  const fallback = () => {
+    const list = curatedPrompts[bucket]!;
+    return list[Math.floor(Math.random() * list.length)]!;
+  };
+  if (user.age_group === "early" || user.age_group === "kids") return { prompt: fallback() };
+  const { aiModel } = await import("../ai");
+  const model = aiModel();
+  if (!model) return { prompt: fallback() };
+  try {
+    const { generateText } = await import("ai");
+    const tags = [...new Set(recent.flatMap((r) => r["tags"] as string[]))].slice(0, 6).join(", ");
+    const { text } = await generateText({
+      model,
+      maxOutputTokens: 60,
+      system:
+        "Write ONE gentle, open journaling prompt (max 20 words) for a wellness app. No diagnosis, no advice, no therapy language. Output only the prompt.",
+      prompt: `Recent mood: ${sky}. Words they tagged: ${tags || "none"}. ${user.age_group === "teen" ? "They are a teenager." : ""}`,
+    });
+    const p = text
+      .trim()
+      .replace(/^["']|["']$/g, "")
+      .slice(0, 200);
+    return { prompt: p || fallback() };
+  } catch {
+    return { prompt: fallback() };
+  }
 });

@@ -61,6 +61,7 @@ export function ready(): Promise<void> {
       }
       await seed();
       await ensureAliases();
+      if (typeof window === "undefined") void import("./scheduler").then((m) => m.startScheduler());
     })().catch((e) => {
       g.__pauseMigrated = undefined;
       throw e;

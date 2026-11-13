@@ -8,4 +8,5 @@ import "./messages";
 import "./billing";
 import "./admin";
 import "./blog";
+import "./extras";
 export { dispatch } from "../router";

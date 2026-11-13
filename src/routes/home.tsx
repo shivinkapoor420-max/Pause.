@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { LoadingCards } from "@/components/kit";
 import { TodayPanel } from "@/components/today-panel";
+import { LocationShare } from "@/components/location-share";
 import { api } from "@/lib/api";
 import { useSession } from "@/lib/session";
 import { AppShell, CalmToggle, Chip, PillButton, ScreeningNote } from "@/components/app-shell";
@@ -82,6 +83,11 @@ function HomeScreen() {
       </div>
 
       <TodayPanel />
+      {user?.ageGroup === "kids" && (
+        <div className="mt-4">
+          <LocationShare />
+        </div>
+      )}
       {user?.ageGroup === "adult" && <AdultHighlights />}
 
       <Link to="/companion" className="mt-6 block" data-tour="pip">

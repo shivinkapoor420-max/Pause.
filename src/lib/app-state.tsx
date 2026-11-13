@@ -24,7 +24,7 @@ export type MoodEntry = {
 export type JournalEntry = {
   id: string;
   date: string;
-  kind: "text" | "voice" | "drawing";
+  kind: "text" | "voice" | "drawing" | "gratitude";
   prompt: string;
   body: string;
   sky?: Sky | undefined;

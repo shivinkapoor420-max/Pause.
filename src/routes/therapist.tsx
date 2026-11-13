@@ -1,8 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { AppShell, CrisisBanner, PillButton } from "@/components/app-shell";
 import { CornerBotanicals, HandoffScene, HandsIllustration } from "@/components/illustrations";
-import { partners, servesBand, type Therapist } from "@/lib/therapists";
+import { usePartners, type Therapist } from "@/lib/therapists";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
 import { bandLabel, useApp } from "@/lib/app-state";
 import { buildPatterns, changesSince, daysUsing } from "@/lib/insights";
 
@@ -34,7 +37,9 @@ function Therapist() {
   const lastShare = state.sentBriefs[state.sentBriefs.length - 1];
   const [kind, setKind] = useState<"brief" | "update">("brief");
   const [chosen, setChosen] = useState<Therapist | null>(null);
-  const eligible = partners.filter((p) => servesBand(p, band));
+  const partnerQuery = usePartners();
+  const eligible = partnerQuery.data ?? [];
+  const [sending, setSending] = useState(false);
 
   const updateDraft = useMemo(() => {
     const since = lastShare?.at ?? state.startedOn ?? new Date().toISOString();
@@ -188,6 +193,7 @@ function Therapist() {
             </Link>
             .
           </p>
+          <SentBriefs />
         </section>
       )}
 
@@ -219,8 +225,9 @@ function Therapist() {
             <div className="mt-4 grid gap-2">
               {eligible.length === 0 && (
                 <p className="rounded-2xl bg-muted p-4 text-sm font-semibold">
-                  No partner therapist takes {bandLabel[band].toLowerCase()} yet. Copy the brief
-                  below and bring it to anyone you find in the directory.
+                  {partnerQuery.isLoading
+                    ? "Loading partner therapists…"
+                    : "Our verified partner network is just getting started, and nobody who sees your age group has joined yet. Copy the brief below and bring it to any therapist you choose."}
                 </p>
               )}
               {eligible.map((p) => (
@@ -236,7 +243,8 @@ function Therapist() {
                     {p.name} · {p.credentials}
                   </span>
                   <span className="block text-xs text-muted-foreground">
-                    {p.city}, {p.state} · {p.issues.slice(0, 4).join(", ")}
+                    {[p.city, p.stateName].filter(Boolean).join(", ")} ·{" "}
+                    {p.issues.slice(0, 4).join(", ")}
                   </span>
                 </button>
               ))}
@@ -246,21 +254,28 @@ function Therapist() {
           <div className="mt-5 flex flex-wrap gap-3">
             <PillButton
               variant="coral"
-              disabled={!chosen}
-              onClick={() => {
+              disabled={!chosen || sending}
+              onClick={async () => {
                 if (!chosen) return;
-                update({
-                  sentBriefs: [
-                    ...state.sentBriefs,
-                    {
-                      at: new Date().toISOString(),
-                      therapistId: chosen.id,
-                      therapistName: chosen.name,
-                      kind,
-                    },
-                  ],
-                });
-                setStage("sent");
+                setSending(true);
+                try {
+                  const r = await api<{ sentAt: string }>("/briefs", {
+                    body: { therapistId: chosen.id, kind, body: value },
+                  });
+                  update({
+                    sentBriefs: [
+                      ...state.sentBriefs,
+                      { at: r.sentAt, therapistId: chosen.id, therapistName: chosen.name, kind },
+                    ],
+                  });
+                  setStage("sent");
+                } catch (e) {
+                  toast.error(
+                    e instanceof Error ? e.message : "Couldn't send — try copying it instead.",
+                  );
+                } finally {
+                  setSending(false);
+                }
               }}
             >
               {chosen
@@ -287,9 +302,9 @@ function Therapist() {
           <HandoffScene className="w-full max-w-xs text-ink" />
           <h2 className="mt-4 font-display text-3xl font-black">Sent. That took courage.</h2>
           <p className="mt-2 text-muted-foreground">
-            Your brief is on its way to {chosen?.name ?? "your chosen partner therapist"}. They'll
-            read it before your first conversation, so you can start in the middle instead of the
-            beginning.
+            Your brief has been delivered to {chosen?.name ?? "your chosen partner therapist"}'s
+            secure Pause inbox, and they've been emailed to let them know. You'll get a notification
+            when they confirm they've received it.
           </p>
           <p className="mt-4 rounded-2xl bg-primary/50 p-4 text-sm font-semibold">
             Want other options too?{" "}
@@ -307,5 +322,32 @@ function Therapist() {
         </section>
       )}
     </AppShell>
+  );
+}
+
+function SentBriefs() {
+  const q = useQuery({
+    queryKey: ["briefs-mine"],
+    queryFn: () => api<{ briefs: any[] }>("/briefs/mine"),
+  });
+  const list = q.data?.briefs ?? [];
+  if (list.length === 0) return null;
+  return (
+    <div className="mt-6">
+      <h3 className="font-display text-xl font-bold">Briefs you've sent</h3>
+      <ul className="mt-2 space-y-2">
+        {list.map((b) => (
+          <li key={b.id} className="rounded-2xl bg-muted p-3 text-sm">
+            <span className="font-bold">
+              {b.kind === "update" ? "Update" : "Brief"} to {b.therapist_name}
+            </span>{" "}
+            · {new Date(b.created_at).toLocaleDateString()} ·{" "}
+            <span className={b.confirmed_at ? "font-bold text-forest" : "text-muted-foreground"}>
+              {b.confirmed_at ? "Receipt confirmed ✓" : b.read_at ? "Opened" : "Delivered"}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

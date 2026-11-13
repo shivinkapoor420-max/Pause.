@@ -11,7 +11,7 @@ import {
   directory,
   issuesForPatterns,
   matchesIssues,
-  partners,
+  usePartners,
   servesBand,
   type Therapist,
 } from "@/lib/therapists";
@@ -209,7 +209,9 @@ function Directory() {
   const [openOnly, setOpenOnly] = useState(false);
   const [showAllIssues, setShowAllIssues] = useState(false);
 
-  const pool = tier === "partner" ? partners : directory;
+  const partnerQuery = usePartners();
+  const partnerList = partnerQuery.data ?? [];
+  const pool = tier === "partner" ? partnerList : directory;
 
   const results = useMemo(() => {
     const band_ = costBands.find((c) => c.id === cost)!;
@@ -274,7 +276,7 @@ function Directory() {
           className="px-4 py-2 text-sm"
           onClick={() => setTier("partner")}
         >
-          Partner network ({partners.length})
+          Partner network ({partnerList.length})
         </PillButton>
       </div>
 

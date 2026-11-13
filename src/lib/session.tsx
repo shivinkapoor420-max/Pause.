@@ -57,6 +57,14 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   });
   const user = me.data?.user ?? null;
 
+  // Keep the user's timezone current so reminders arrive at their local time.
+  useEffect(() => {
+    if (!user || user.childMode) return;
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (tz && user.prefs?.tz !== tz)
+      void api("/me", { method: "PATCH", body: { prefs: { tz } } }).catch(() => {});
+  }, [user?.id, user?.prefs?.tz]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Realtime: one SSE stream per signed-in tab; events invalidate the relevant queries.
   useEffect(() => {
     if (!user || typeof EventSource === "undefined") return;

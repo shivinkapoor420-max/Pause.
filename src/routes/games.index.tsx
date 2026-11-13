@@ -38,6 +38,15 @@ function GamesCentre() {
           ) : undefined
         }
       />
+      {q.data?.dailyMinutes != null && (
+        <p
+          className={`mb-5 rounded-2xl p-4 text-sm font-bold ${q.data.minutesToday >= q.data.dailyMinutes ? "bg-coral/40" : "bg-primary/50"}`}
+        >
+          {q.data.minutesToday >= q.data.dailyMinutes
+            ? `⏰ You've played ${q.data.minutesToday} minutes today — that's your game time! Maybe try a story, a drawing or a breathing bubble instead.`
+            : `🎈 Game time today: ${q.data.minutesToday} of ${q.data.dailyMinutes} minutes.`}
+        </p>
+      )}
       {q.isLoading ? (
         <LoadingCards n={4} />
       ) : q.data && !q.data.gamesAllowed ? (
