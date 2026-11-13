@@ -1,0 +1,401 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Pause. design system
+ * Warm, editorially-illustrated, non-clinical.
+ * All colors in oklch. Never hardcode colors in components.
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 6px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 8px);
+  --radius-2xl: calc(var(--radius) + 16px);
+  --radius-3xl: calc(var(--radius) + 24px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-forest: var(--forest);
+  --color-forest-foreground: var(--forest-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-coral: var(--coral);
+  --color-coral-foreground: var(--coral-foreground);
+  --color-lavender: var(--lavender);
+  --color-mustard: var(--mustard);
+  --color-blush: var(--blush);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-ink: var(--ink);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-sans: "Quicksand", ui-rounded, system-ui, sans-serif;
+
+  --shadow-soft: 0 10px 30px -18px var(--shadow-tint);
+  --shadow-lift: 0 18px 40px -24px var(--shadow-tint);
+}
+
+:root {
+  --radius: 1.25rem;
+
+  --background: oklch(0.943 0.028 92.3); /* warm cream #F2ECDC */
+  --foreground: oklch(0.19 0.006 67); /* near black #1A1917 */
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.19 0.006 67);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.19 0.006 67);
+
+  --primary: oklch(0.874 0.079 141.6); /* sage mint #B9DCAF */
+  --primary-foreground: oklch(0.31 0.05 156);
+
+  --forest: oklch(0.396 0.062 158.7); /* deep forest #2F5741 */
+  --forest-foreground: oklch(0.973 0.017 92);
+
+  --coral: oklch(0.703 0.129 43.5); /* soft coral #E8875C */
+  --coral-foreground: oklch(0.21 0.04 40);
+
+  --lavender: oklch(0.884 0.037 292.6); /* #DAD8F2 */
+  --mustard: oklch(0.822 0.108 82.9); /* #E7BE68 */
+  --blush: oklch(0.874 0.048 349.4); /* #F3CBD8 */
+
+  --secondary: oklch(0.884 0.037 292.6);
+  --secondary-foreground: oklch(0.28 0.04 292);
+  --muted: oklch(0.964 0.014 92.3);
+  --muted-foreground: oklch(0.46 0.014 70); /* warm charcoal #4A443E */
+  --accent: oklch(0.874 0.079 141.6);
+  --accent-foreground: oklch(0.31 0.05 156);
+  --ink: oklch(0.19 0.006 67);
+
+  --destructive: oklch(0.545 0.176 24.5);
+  --destructive-foreground: oklch(0.98 0.01 90);
+
+  --border: oklch(0.19 0.006 67 / 12%);
+  --input: oklch(0.884 0.037 292.6);
+  --ring: oklch(0.396 0.062 158.7);
+  --shadow-tint: oklch(0.396 0.062 158.7 / 45%);
+}
+
+/* Calm mode: desaturate accents toward cream/white, keep type + layout. */
+.calm {
+  --background: oklch(0.968 0.011 92.3);
+  --primary: oklch(0.94 0.014 141);
+  --primary-foreground: oklch(0.36 0.01 156);
+  --forest: oklch(0.44 0.014 158);
+  --coral: oklch(0.92 0.018 43);
+  --coral-foreground: oklch(0.32 0.012 40);
+  --lavender: oklch(0.955 0.008 292);
+  --mustard: oklch(0.955 0.016 83);
+  --blush: oklch(0.958 0.01 349);
+  --secondary: oklch(0.955 0.008 292);
+  --input: oklch(0.93 0.006 92);
+  --accent: oklch(0.94 0.014 141);
+  --shadow-tint: oklch(0.44 0.01 158 / 22%);
+}
+
+.dyslexic {
+  --font-sans: "Comic Sans MS", "Verdana", ui-rounded, system-ui, sans-serif;
+  --font-display: "Verdana", Georgia, serif;
+  letter-spacing: 0.02em;
+  word-spacing: 0.1em;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    font-size: var(--root-font-size, 100%);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-weight: 500;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+  }
+}
+
+@utility card-soft {
+  background: var(--color-card);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-soft);
+  border: 1px solid var(--color-border);
+}
+
+@utility ink-outline {
+  border: 2px solid var(--color-ink);
+}
+
+@utility sky-wash {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 42% at 18% 0%, var(--color-primary) 0%, transparent 62%),
+    radial-gradient(52% 38% at 88% 6%, var(--color-lavender) 0%, transparent 66%),
+    radial-gradient(48% 30% at 50% 100%, var(--color-blush) 0%, transparent 70%);
+  opacity: 0.85;
+}
+
+@utility drift {
+  animation: drift 14s ease-in-out infinite alternate;
+}
+
+.calm .drift {
+  animation: none;
+}
+
+@keyframes drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(0, 10px, 0) scale(1.04);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drift {
+    animation: none;
+  }
+}
+
+@utility breathe {
+  animation: breathe 5s ease-in-out infinite;
+  transform-origin: 50% 85%;
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.035);
+  }
+}
+
+@utility pulse-glow {
+  animation: pulse-glow 1.8s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in oklch, var(--color-coral) 55%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 14px color-mix(in oklch, var(--color-coral) 0%, transparent);
+  }
+}
+
+@utility sparkle {
+  animation: sparkle 1.4s ease-in-out infinite;
+}
+
+@keyframes sparkle {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: scaleX(0.6);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+.calm .breathe,
+.calm .pulse-glow,
+.calm .sparkle {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .breathe,
+  .pulse-glow,
+  .sparkle {
+    animation: none;
+  }
+}
+
+@utility sway {
+  animation: sway 11s ease-in-out infinite alternate;
+  transform-origin: 20% 20%;
+}
+
+@keyframes sway {
+  from {
+    transform: rotate(-1.2deg) translate3d(0, 0, 0);
+  }
+  to {
+    transform: rotate(1.4deg) translate3d(0, 4px, 0);
+  }
+}
+
+@utility glow-slow {
+  animation: glow-slow 6s ease-in-out infinite;
+}
+
+@keyframes glow-slow {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: translateX(-50%) scale(0.94);
+  }
+  50% {
+    opacity: 0.7;
+    transform: translateX(-50%) scale(1.06);
+  }
+}
+
+.flicker {
+  animation: flicker 5.5s ease-in-out infinite;
+}
+
+@keyframes flicker {
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.twinkle-slow {
+  animation: twinkle-slow 4.5s ease-in-out infinite;
+}
+
+@keyframes twinkle-slow {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.calm .sway,
+.calm .glow-slow,
+.calm .flicker,
+.calm .twinkle-slow {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sway,
+  .glow-slow,
+  .flicker,
+  .twinkle-slow {
+    animation: none;
+  }
+}
+
+/* ---------------------------------------------------------------
+ * Adaptive accessibility profile — independent axes.
+ * Motion, colour intensity and layout complexity each stand alone,
+ * so zero motion with full colour (or the reverse) is expressible.
+ * --------------------------------------------------------------- */
+
+.motion-none *,
+.motion-none *::before,
+.motion-none *::after {
+  animation: none !important;
+  transition-duration: 0.01ms !important;
+}
+
+.motion-reduced *,
+.motion-reduced *::before,
+.motion-reduced *::after {
+  animation-duration: 2.4s !important;
+  animation-iteration-count: 1 !important;
+}
+
+/* Colour intensity: muted pulls accents toward the cream base,
+   vivid deepens them. Layout and type never change. */
+.color-muted {
+  --primary: oklch(0.925 0.032 141.6);
+  --coral: oklch(0.83 0.06 43.5);
+  --lavender: oklch(0.94 0.016 292.6);
+  --mustard: oklch(0.925 0.045 82.9);
+  --blush: oklch(0.94 0.02 349.4);
+  --secondary: oklch(0.94 0.016 292.6);
+}
+
+.color-vivid {
+  --primary: oklch(0.845 0.132 141.6);
+  --coral: oklch(0.68 0.174 43.5);
+  --lavender: oklch(0.85 0.072 292.6);
+  --mustard: oklch(0.8 0.152 82.9);
+  --blush: oklch(0.85 0.086 349.4);
+  --secondary: oklch(0.85 0.072 292.6);
+}
+
+/* Single-focus layout: one column, more air, less decoration. */
+.layout-single [data-decorative="true"] {
+  display: none;
+}
+
+.layout-single .grid-cols-2,
+.layout-single .sm\:grid-cols-2,
+.layout-single .grid-cols-3 {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@utility sky-drift-slow {
+  animation: sky-drift-slow 42s linear infinite;
+}
+
+@keyframes sky-drift-slow {
+  from {
+    transform: translateX(-6%);
+  }
+  to {
+    transform: translateX(6%);
+  }
+}
+
+@utility bloom-pulse {
+  animation: bloom-pulse 9s ease-in-out infinite;
+}
+
+@keyframes bloom-pulse {
+  0%,
+  100% {
+    filter: brightness(1);
+    opacity: 0.75;
+  }
+  50% {
+    filter: brightness(1.12);
+    opacity: 1;
+  }
+}
