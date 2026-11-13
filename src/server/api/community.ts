@@ -97,7 +97,7 @@ route("GET", "/community/feed", async ({ request, url }) => {
 
 route("POST", "/community/posts", async ({ request }) => {
   const { user } = await requireVerifiedAdult(request);
-  rateLimit(`post:${user.id}`, 10, 60 * 60 * 1000);
+  await rateLimit(`post:${user.id}`, 10, 60 * 60 * 1000);
   const input = await body(
     request,
     z.object({
@@ -196,7 +196,7 @@ route("GET", "/community/posts/:id", async ({ request, params }) => {
 
 route("POST", "/community/posts/:id/comments", async ({ request, params }) => {
   const { user } = await requireVerifiedAdult(request);
-  rateLimit(`comment:${user.id}`, 40, 60 * 60 * 1000);
+  await rateLimit(`comment:${user.id}`, 40, 60 * 60 * 1000);
   const input = await body(
     request,
     z.object({
@@ -246,7 +246,7 @@ route("DELETE", "/community/comments/:id", async ({ request, params }) => {
 
 route("POST", "/community/posts/:id/react", async ({ request, params }) => {
   const { user } = await requireVerifiedAdult(request);
-  rateLimit(`react:${user.id}`, 300, 60 * 60 * 1000);
+  await rateLimit(`react:${user.id}`, 300, 60 * 60 * 1000);
   const { kind } = await body(
     request,
     z.object({ kind: z.enum(["heart", "hug", "strength", "relate", "celebrate"]).nullable() }),
@@ -300,7 +300,7 @@ route("GET", "/community/communities", async ({ request }) => {
 
 route("POST", "/community/communities", async ({ request }) => {
   const { user } = await requireVerifiedAdult(request);
-  rateLimit(`community-create:${user.id}`, 3, 24 * 60 * 60 * 1000);
+  await rateLimit(`community-create:${user.id}`, 3, 24 * 60 * 60 * 1000);
   const input = await body(
     request,
     z.object({
@@ -361,6 +361,8 @@ route("POST", "/community/c/:slug/join", async ({ request, params }) => {
 route("POST", "/community/c/:slug/leave", async ({ request, params }) => {
   const { user } = await requireAdult(request);
   const sql = await db();
+  await sql`update conversation_members set status = 'left' where user_id = ${user.id}
+    and conversation_id in (select id from conversations where community_id = (select id from communities where slug = ${params["slug"]!}))`;
   await sql`delete from community_members where user_id = ${user.id} and role <> 'owner'
     and community_id = (select id from communities where slug = ${params["slug"]!})`;
   return { ok: true };
@@ -482,7 +484,7 @@ route("GET", "/community/u/:username/:list", async ({ request, params }) => {
 
 route("POST", "/community/users/:id/follow", async ({ request, params }) => {
   const { user } = await requireVerifiedAdult(request);
-  rateLimit(`follow:${user.id}`, 100, 60 * 60 * 1000);
+  await rateLimit(`follow:${user.id}`, 100, 60 * 60 * 1000);
   const sql = await db();
   const them = params["id"]!;
   if (them === user.id) throw bad("You can't follow yourself.");
@@ -542,7 +544,7 @@ route("GET", "/community/blocked", async ({ request }) => {
 // ---------------------------------------------------------------- reports (always free)
 route("POST", "/reports", async ({ request }) => {
   const auth: Auth = await requireUser(request);
-  rateLimit(`report:${auth.user.id}`, 30, 60 * 60 * 1000);
+  await rateLimit(`report:${auth.user.id}`, 30, 60 * 60 * 1000);
   const input = await body(
     request,
     z.object({
@@ -621,3 +623,22 @@ route("GET", "/community/discover", async ({ request }) => {
 });
 
 export { publish };
+
+// ---------------------------------------------------------------- community group chat
+/** Each community has one optional group chat. Joining it is free for members. */
+route("POST", "/community/c/:slug/chat", async ({ request, params }) => {
+  const { user } = await requireVerifiedAdult(request);
+  const sql = await db();
+  const [c] =
+    await sql`select c.id, c.name from communities c join community_members m on m.community_id = c.id
+    where c.slug = ${params["slug"]!} and c.status = 'active' and m.user_id = ${user.id}`;
+  if (!c) throw forbidden("Join the community to open its group chat.");
+  let [conv] = await sql`select id from conversations where community_id = ${c["id"]} limit 1`;
+  if (!conv) {
+    [conv] = await sql`insert into conversations (is_group, title, community_id, created_by)
+      values (true, ${`${c["name"]} chat`}, ${c["id"]}, ${user.id}) returning id`;
+  }
+  await sql`insert into conversation_members (conversation_id, user_id, status) values (${conv!["id"]}, ${user.id}, 'accepted')
+    on conflict (conversation_id, user_id) do update set status = 'accepted'`;
+  return { id: conv!["id"] };
+});

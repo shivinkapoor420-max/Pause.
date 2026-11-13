@@ -52,7 +52,7 @@ async function sendVerification(user: { id: string; email: string | null; displa
 }
 
 route("POST", "/auth/signup", async ({ request }) => {
-  rateLimit(`signup:${clientIp(request)}`, 8, 60 * 60 * 1000);
+  await rateLimit(`signup:${clientIp(request)}`, 8, 60 * 60 * 1000);
   const input = await body(
     request,
     z.object({
@@ -107,8 +107,8 @@ route("POST", "/auth/login", async ({ request }) => {
     z.object({ login: z.string().min(1).max(200), password: z.string().min(1).max(200) }),
   );
   const ip = clientIp(request);
-  rateLimit(`login:${ip}`, 20, 15 * 60 * 1000);
-  rateLimit(`login:${input.login.toLowerCase()}`, 8, 15 * 60 * 1000);
+  await rateLimit(`login:${ip}`, 20, 15 * 60 * 1000);
+  await rateLimit(`login:${input.login.toLowerCase()}`, 8, 15 * 60 * 1000);
   const sql = await db();
   const login = input.login.toLowerCase();
   const rows = await sql<
@@ -176,7 +176,7 @@ route("POST", "/auth/verify-email", async ({ request }) => {
 
 route("POST", "/auth/resend-verification", async ({ request }) => {
   const auth = await requireUser(request);
-  rateLimit(`verify:${auth.user.id}`, 3, 60 * 60 * 1000);
+  await rateLimit(`verify:${auth.user.id}`, 3, 60 * 60 * 1000);
   if (auth.user.email_verified_at) return { ok: true, alreadyVerified: true };
   await sendVerification(auth.user);
   return { ok: true };
@@ -184,7 +184,7 @@ route("POST", "/auth/resend-verification", async ({ request }) => {
 
 route("POST", "/auth/forgot", async ({ request }) => {
   const { email } = await body(request, z.object({ email: z.string().email() }));
-  rateLimit(`forgot:${clientIp(request)}`, 5, 60 * 60 * 1000);
+  await rateLimit(`forgot:${clientIp(request)}`, 5, 60 * 60 * 1000);
   const sql = await db();
   const rows = await sql<
     UserRow[]
@@ -267,7 +267,7 @@ route("POST", "/auth/exit-child-mode", async ({ request }) => {
   const auth = await requireUser(request);
   if (!auth.childMode || !auth.parentId) throw bad("Not in child mode.");
   const { pin } = await body(request, z.object({ pin: z.string().regex(/^\d{4}$/) }));
-  rateLimit(`pin:${auth.parentId}`, 6, 10 * 60 * 1000);
+  await rateLimit(`pin:${auth.parentId}`, 6, 10 * 60 * 1000);
   const sql = await db();
   const rows = await sql<UserRow[]>`select * from users where id = ${auth.parentId}`;
   if (!rows[0] || !(await verifyPassword(pin, rows[0].parent_pin_hash)))

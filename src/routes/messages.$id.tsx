@@ -43,6 +43,23 @@ function Conversation() {
   const [recording, setRecording] = useState<MediaRecorder | null>(null);
   const [picker, setPicker] = useState<string | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
+  const [typing, setTyping] = useState<string | null>(null);
+  const lastTyping = useRef(0);
+  useEffect(() => {
+    let t: ReturnType<typeof setTimeout> | undefined;
+    const on = (e: Event) => {
+      const d = (e as CustomEvent).detail as { conversationId: string; name: string };
+      if (d.conversationId !== id) return;
+      setTyping(d.name);
+      clearTimeout(t);
+      t = setTimeout(() => setTyping(null), 4000);
+    };
+    window.addEventListener("pause:typing", on);
+    return () => {
+      window.removeEventListener("pause:typing", on);
+      clearTimeout(t);
+    };
+  }, [id]);
   const fileRef = useRef<HTMLInputElement>(null);
   const data = q.data;
   const me = data?.me;
@@ -350,6 +367,11 @@ function Conversation() {
             new Date(otherRead) >= new Date(data.messages[data.messages.length - 1].created_at) && (
               <p className="pr-2 text-right text-xs text-muted-foreground">Seen</p>
             )}
+          {typing && (
+            <p className="pl-2 text-xs font-bold text-muted-foreground" aria-live="polite">
+              {typing} is typing…
+            </p>
+          )}
           <div ref={endRef} />
         </div>
 
@@ -429,7 +451,15 @@ function Conversation() {
               </button>
               <textarea
                 value={text}
-                onChange={(e) => setText(e.target.value)}
+                onChange={(e) => {
+                  setText(e.target.value);
+                  if (Date.now() - lastTyping.current > 3000) {
+                    lastTyping.current = Date.now();
+                    void api(`/messages/conversations/${id}/typing`, { method: "POST" }).catch(
+                      () => {},
+                    );
+                  }
+                }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();

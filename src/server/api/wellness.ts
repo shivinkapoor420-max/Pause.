@@ -115,6 +115,14 @@ route("PATCH", "/me", async ({ request }) => {
     throw bad("That's too much data to save.");
   if (input.settings && JSON.stringify(input.settings).length > 5_000)
     throw bad("Settings too large.");
+  // Profile images must be the user's own public uploads.
+  for (const id of [input.avatarId, input.coverId]) {
+    if (!id) continue;
+    const sqlCheck = await db();
+    const own =
+      await sqlCheck`select 1 from uploads where id = ${id} and owner_id = ${user.id} and scope = 'public' and mime like 'image/%'`;
+    if (!own.length) throw bad("That image wasn't found.");
+  }
   // Minors keep private profiles; no social surface exists for them anyway.
   const visibility = user.age_group === "adult" ? input.profileVisibility : "private";
   if (input.prefs?.leaderboardOptIn && user.age_group !== "adult")
@@ -165,7 +173,7 @@ route("POST", "/moods", async ({ request }) => {
 
 route("POST", "/journal", async ({ request }) => {
   const { user } = await requireUser(request);
-  rateLimit(`journal:${user.id}`, 60, 60 * 60 * 1000);
+  await rateLimit(`journal:${user.id}`, 60, 60 * 60 * 1000);
   const input = await body(
     request,
     z.object({
@@ -280,7 +288,7 @@ route("DELETE", "/companion/sessions", async ({ request }) => {
 
 route("POST", "/activity", async ({ request }) => {
   const { user } = await requireUser(request);
-  rateLimit(`activity:${user.id}`, 120, 60 * 60 * 1000);
+  await rateLimit(`activity:${user.id}`, 120, 60 * 60 * 1000);
   const input = await body(
     request,
     z.object({
@@ -377,7 +385,7 @@ route("GET", "/achievements", async ({ request }) => {
 // ---------------------------------------------------------------- data rights
 route("GET", "/me/export", async ({ request }) => {
   const { user } = await requireUser(request);
-  rateLimit(`export:${user.id}`, 5, 60 * 60 * 1000);
+  await rateLimit(`export:${user.id}`, 5, 60 * 60 * 1000);
   const sql = await db();
   const [moods, journal, checkins, companion, games, posts, comments, messages, consents] =
     await Promise.all([

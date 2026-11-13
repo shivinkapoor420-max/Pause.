@@ -85,6 +85,15 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         /* ignore */
       }
     });
+    es.addEventListener("typing", (e) => {
+      try {
+        window.dispatchEvent(
+          new CustomEvent("pause:typing", { detail: JSON.parse((e as MessageEvent).data) }),
+        );
+      } catch {
+        /* ignore */
+      }
+    });
     es.addEventListener("read", (e) => {
       try {
         const d = JSON.parse((e as MessageEvent).data);

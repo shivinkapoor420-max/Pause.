@@ -91,6 +91,7 @@ export async function tick() {
 
   // 3. Housekeeping.
   await sql`delete from sessions where expires_at < now()`;
+  await sql`delete from rate_limits where window_start < now() - interval '2 days'`;
   await sql`delete from auth_tokens where expires_at < now() - interval '1 day'`;
   await sql`delete from ai_usage where day < current_date - 30`;
   await sql`delete from reminder_log where day < current_date - 14`;

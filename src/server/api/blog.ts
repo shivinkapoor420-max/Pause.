@@ -40,14 +40,14 @@ route("GET", "/blog/:id", async ({ params }) => {
 });
 
 route("POST", "/blog/:id/heart", async ({ request, params }) => {
-  rateLimit(`heart:${clientIp(request)}:${params["id"]}`, 1, 24 * 60 * 60 * 1000);
+  await rateLimit(`heart:${clientIp(request)}:${params["id"]}`, 1, 24 * 60 * 60 * 1000);
   const sql = await db();
   await sql`update blog_posts set hearts = hearts + 1 where id = ${params["id"]!} and status = 'published'`;
   return { ok: true };
 });
 
 route("POST", "/blog", async ({ request }) => {
-  rateLimit(`blog:${clientIp(request)}`, 4, 24 * 60 * 60 * 1000);
+  await rateLimit(`blog:${clientIp(request)}`, 4, 24 * 60 * 60 * 1000);
   const auth = await getAuth(request);
   if (auth && (auth.user.age_group !== "adult" || auth.childMode))
     throw forbidden(

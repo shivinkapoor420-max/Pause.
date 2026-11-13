@@ -56,7 +56,7 @@ route("GET", "/games", async ({ request }) => {
 
 route("POST", "/games/results", async ({ request }) => {
   const { user } = await requireUser(request);
-  rateLimit(`game:${user.id}`, 120, 60 * 60 * 1000);
+  await rateLimit(`game:${user.id}`, 120, 60 * 60 * 1000);
   const input = await body(
     request,
     z.object({

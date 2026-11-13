@@ -1,4 +1,4 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Lock } from "lucide-react";
@@ -15,6 +15,7 @@ export const Route = createFileRoute("/community/c/$slug")({
 
 function CommunityPage() {
   const { slug } = Route.useParams();
+  const navigate = useNavigate();
   const c = useQuery({
     queryKey: ["community", slug],
     queryFn: () => api(`/community/c/${slug}`),
@@ -64,6 +65,23 @@ function CommunityPage() {
               <p className="mt-2 max-w-xl font-semibold">{com.description}</p>
               <p className="mt-3 text-sm font-bold">{com.members} members</p>
               <div className="mt-4 flex gap-2">
+                {com.my_role && !com.locked && (
+                  <PillButton
+                    variant="outline"
+                    onClick={async () => {
+                      try {
+                        const r = await api<{ id: string }>(`/community/c/${slug}/chat`, {
+                          method: "POST",
+                        });
+                        navigate({ to: "/messages/$id", params: { id: r.id } });
+                      } catch (e) {
+                        toast.error(e instanceof Error ? e.message : "Couldn't open the chat");
+                      }
+                    }}
+                  >
+                    💬 Group chat
+                  </PillButton>
+                )}
                 {com.locked ? (
                   <Link to="/pricing">
                     <PillButton variant="outline">

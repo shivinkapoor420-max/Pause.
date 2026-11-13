@@ -53,23 +53,42 @@ export function clean(text: string, max = 5000) {
 }
 
 // ---------------------------------------------------------------- rate limiting
-// In-memory sliding window. Good for a single server instance; swap for Redis
-// (e.g. Upstash) when running several instances behind a load balancer.
+// Fixed-window counters stored in Postgres (an UNLOGGED table, so it's fast),
+// which means limits hold across any number of server instances. If the
+// database is briefly unavailable we fall back to an in-memory window rather
+// than blocking people.
 const buckets = new Map<string, number[]>();
 
-export function rateLimit(key: string, limit: number, windowMs: number) {
+function memoryLimit(key: string, limit: number, windowMs: number) {
   const now = Date.now();
   const hits = (buckets.get(key) ?? []).filter((t) => now - t < windowMs);
-  if (hits.length >= limit) {
+  if (hits.length >= limit) return false;
+  hits.push(now);
+  buckets.set(key, hits);
+  if (buckets.size > 50_000) buckets.clear();
+  return true;
+}
+
+export async function rateLimit(key: string, limit: number, windowMs: number) {
+  let ok: boolean;
+  try {
+    const { db } = await import("./db");
+    const sql = await db();
+    const windowStart = new Date(Math.floor(Date.now() / windowMs) * windowMs);
+    const [row] =
+      await sql`insert into rate_limits (key, window_start, count) values (${key}, ${windowStart}, 1)
+      on conflict (key, window_start) do update set count = rate_limits.count + 1 returning count`;
+    ok = ((row?.["count"] as number) ?? 1) <= limit;
+  } catch {
+    ok = memoryLimit(key, limit, windowMs);
+  }
+  if (!ok) {
     throw new HttpError(
       429,
       "You're going a little fast — please wait a moment and try again.",
       "rate_limited",
     );
   }
-  hits.push(now);
-  buckets.set(key, hits);
-  if (buckets.size > 50_000) buckets.clear();
 }
 
 export function clientIp(request: Request) {

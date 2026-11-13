@@ -540,6 +540,29 @@ async function main() {
     r.data,
   );
 
+  console.log("\nGroup chat, typing, profile images, rate limits");
+  r = await alice.req("POST", "/community/c/recovery/chat");
+  check("community member opens group chat", r.status === 200 && r.data.id, r.data);
+  const groupId = r.data.id;
+  r = await alice.req("POST", `/messages/conversations/${groupId}`, { body: "Hi everyone 🌱" });
+  check("message in community group chat", r.status === 200, r.data);
+  r = await alice.req("POST", `/messages/conversations/${groupId}/typing`);
+  check("typing signal accepted", r.status === 200);
+  r = await new Client("outsider").req("POST", "/community/c/recovery/chat");
+  check("non-member can't open the chat", r.status === 401 || r.status === 403);
+  r = await alice.req("PATCH", "/me", { avatarId: "00000000-0000-4000-8000-000000000000" });
+  check("can't use someone else's image as avatar", r.status === 400, r.data);
+  const hammer = new Client("hammer");
+  let limited = false;
+  for (let i = 0; i < 25 && !limited; i++) {
+    const x = await hammer.req("POST", "/auth/login", {
+      login: `nobody_${stamp}`,
+      password: "wrong",
+    });
+    if (x.status === 429) limited = true;
+  }
+  check("login brute force is rate limited", limited);
+
   console.log(`\n${passed} passed, ${failed} failed`);
   process.exit(failed ? 1 : 0);
 }

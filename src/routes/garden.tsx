@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell, CalmToggle, PillButton } from "@/components/app-shell";
 import { CornerBotanicals } from "@/components/illustrations";
 import { buildGarden, type GardenItem } from "@/lib/garden";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api";
 import { daysUsing } from "@/lib/insights";
 import { useApp } from "@/lib/app-state";
 
@@ -97,8 +99,149 @@ function Sprout({ item }: { item: GardenItem }) {
   );
 }
 
+export const scenes = {
+  meadow: {
+    label: "Meadow",
+    sky: "color-mix(in oklch, var(--color-background) 70%, var(--color-card))",
+    ground: "color-mix(in oklch, var(--color-forest) 16%, transparent)",
+    level: 1,
+  },
+  dawn: {
+    label: "Dawn",
+    sky: "oklch(0.93 0.05 40)",
+    ground: "oklch(0.8 0.08 140 / 45%)",
+    level: 2,
+  },
+  seaside: {
+    label: "Seaside",
+    sky: "oklch(0.92 0.05 220)",
+    ground: "oklch(0.88 0.07 85 / 70%)",
+    level: 3,
+  },
+  night: {
+    label: "Starry night",
+    sky: "oklch(0.32 0.06 270)",
+    ground: "oklch(0.4 0.07 160 / 70%)",
+    level: 5,
+  },
+} as const;
+
+/** Collectibles unlock through levels and achievements — never through reporting a particular mood. */
+export const decorations: {
+  id: string;
+  emoji: string;
+  label: string;
+  x: number;
+  y: number;
+  level?: number;
+  achievement?: string;
+}[] = [
+  { id: "sun", emoji: "☀️", label: "Warm sun", x: 84, y: 14, level: 1 },
+  { id: "bench", emoji: "🪑", label: "Resting bench", x: 18, y: 70, achievement: "first_checkin" },
+  { id: "butterfly", emoji: "🦋", label: "Butterfly", x: 62, y: 40, achievement: "first_journal" },
+  { id: "pond", emoji: "💧", label: "Little pond", x: 76, y: 80, achievement: "first_breath" },
+  { id: "mushroom", emoji: "🍄", label: "Mushrooms", x: 30, y: 82, achievement: "first_game" },
+  { id: "lantern", emoji: "🏮", label: "Lantern", x: 8, y: 62, level: 3 },
+  { id: "rainbow", emoji: "🌈", label: "Rainbow", x: 40, y: 18, achievement: "checkin_7" },
+  { id: "bee", emoji: "🐝", label: "Busy bee", x: 52, y: 56, achievement: "journal_10" },
+  { id: "tree", emoji: "🌳", label: "Old oak", x: 90, y: 60, achievement: "checkin_30" },
+  { id: "moon", emoji: "🌙", label: "Moon", x: 14, y: 14, level: 5 },
+  { id: "snail", emoji: "🐌", label: "Patient snail", x: 66, y: 86, achievement: "breath_10" },
+  { id: "kite", emoji: "🪁", label: "Kite", x: 70, y: 22, achievement: "games_5_kinds" },
+];
+
+type GardenPrefs = { scene?: keyof typeof scenes; decor?: string[] };
+
+function GardenStudio({
+  prefs,
+  onChange,
+}: {
+  prefs: GardenPrefs;
+  onChange: (p: GardenPrefs) => void;
+}) {
+  const ach = useQuery({
+    queryKey: ["achievements"],
+    queryFn: () =>
+      api<{ level: number; achievements: { key: string; earnedAt: string | null }[] }>(
+        "/achievements",
+      ),
+  });
+  const level = ach.data?.level ?? 1;
+  const earned = new Set(
+    (ach.data?.achievements ?? []).filter((a) => a.earnedAt).map((a) => a.key),
+  );
+  const unlocked = (d: (typeof decorations)[number]) =>
+    (d.level ? level >= d.level : true) && (d.achievement ? earned.has(d.achievement) : true);
+  const decor = prefs.decor ?? [];
+  return (
+    <section className="card-soft mt-6 p-6">
+      <h3 className="font-display text-2xl font-bold">Make it yours</h3>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Unlock scenes and keepsakes by showing up — level {level} so far.
+      </p>
+      <p className="mt-4 text-sm font-bold">Scene</p>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {(Object.keys(scenes) as (keyof typeof scenes)[]).map((k) => {
+          const locked = level < scenes[k].level;
+          return (
+            <button
+              key={k}
+              disabled={locked}
+              onClick={() => onChange({ ...prefs, scene: k })}
+              aria-pressed={(prefs.scene ?? "meadow") === k}
+              className={`rounded-2xl border-2 px-3 py-2 text-sm font-bold disabled:opacity-50 ${(prefs.scene ?? "meadow") === k ? "border-ink" : "border-border"}`}
+            >
+              <span
+                className="mr-2 inline-block size-4 rounded-full align-middle"
+                style={{ background: scenes[k].sky }}
+              />
+              {scenes[k].label}
+              {locked && ` · level ${scenes[k].level}`}
+            </button>
+          );
+        })}
+      </div>
+      <p className="mt-5 text-sm font-bold">Keepsakes</p>
+      <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-6">
+        {decorations.map((d) => {
+          const ok = unlocked(d);
+          const on = decor.includes(d.id);
+          return (
+            <button
+              key={d.id}
+              disabled={!ok}
+              onClick={() =>
+                onChange({
+                  ...prefs,
+                  decor: on ? decor.filter((x) => x !== d.id) : [...decor, d.id],
+                })
+              }
+              aria-pressed={on}
+              title={
+                ok ? d.label : d.level ? `Reach level ${d.level}` : "Earn an achievement to unlock"
+              }
+              className={`flex flex-col items-center gap-1 rounded-2xl border-2 p-2 text-xs font-bold ${on ? "border-ink bg-primary/60" : "border-border bg-muted"} ${ok ? "" : "opacity-40 grayscale"}`}
+            >
+              <span className="text-2xl" aria-hidden="true">
+                {ok ? d.emoji : "🔒"}
+              </span>
+              {d.label}
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function GardenPage() {
-  const { state } = useApp();
+  const { state, update } = useApp();
+  const gPrefs = ((state as unknown as { garden?: GardenPrefs }).garden ?? {}) as GardenPrefs;
+  const scene = scenes[gPrefs.scene ?? "meadow"] ?? scenes.meadow;
+  const saveGarden = (next: GardenPrefs) => {
+    update({ ...({ garden: next } as object) } as never);
+    void api("/me", { method: "PATCH", body: { appData: { garden: next } } }).catch(() => {});
+  };
   const garden = buildGarden(state);
   const counts = garden.items.reduce<Record<string, number>>((acc, i) => {
     acc[i.because] = (acc[i.because] ?? 0) + 1;
@@ -124,16 +267,9 @@ function GardenPage() {
         role="img"
         aria-label={`${garden.headline} ${garden.items.length} things have grown here.`}
       >
-        <svg viewBox="0 0 100 92" className="w-full">
-          <rect
-            width="100"
-            height="92"
-            fill="color-mix(in oklch, var(--color-background) 70%, var(--color-card))"
-          />
-          <path
-            d="M0 74 q16 -6 32 -1 t34 -3 t34 2 V92 H0 Z"
-            fill="color-mix(in oklch, var(--color-forest) 16%, transparent)"
-          />
+        <svg viewBox="0 0 100 92" className="mx-auto w-full max-w-xl">
+          <rect width="100" height="92" fill={scene.sky} />
+          <path d="M0 74 q16 -6 32 -1 t34 -3 t34 2 V92 H0 Z" fill={scene.ground} />
           <path
             d="M0 74 q16 -6 32 -1 t34 -3 t34 2"
             fill="none"
@@ -143,8 +279,17 @@ function GardenPage() {
           {garden.items.map((item) => (
             <Sprout key={item.n} item={item} />
           ))}
+          {decorations
+            .filter((d) => (gPrefs.decor ?? []).includes(d.id))
+            .map((d) => (
+              <text key={d.id} x={d.x} y={d.y} fontSize="7" textAnchor="middle">
+                {d.emoji}
+              </text>
+            ))}
         </svg>
       </div>
+
+      <GardenStudio prefs={gPrefs} onChange={saveGarden} />
 
       {garden.items.length > 0 && (
         <ul className="mt-5 grid gap-2">

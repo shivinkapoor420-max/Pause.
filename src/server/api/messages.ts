@@ -53,7 +53,7 @@ route("GET", "/messages/conversations", async ({ request }) => {
 
 route("POST", "/messages/conversations", async ({ request }) => {
   const { user } = await requireVerifiedAdult(request);
-  rateLimit(`conv:${user.id}`, 20, 60 * 60 * 1000);
+  await rateLimit(`conv:${user.id}`, 20, 60 * 60 * 1000);
   const input = await body(
     request,
     z.object({
@@ -129,7 +129,7 @@ route("GET", "/messages/conversations/:id", async ({ request, params, url }) => 
 
 route("POST", "/messages/conversations/:id", async ({ request, params }) => {
   const { user } = await requireVerifiedAdult(request);
-  rateLimit(`dm:${user.id}`, 60, 60 * 1000);
+  await rateLimit(`dm:${user.id}`, 60, 60 * 1000);
   const input = await body(
     request,
     z.object({
@@ -342,7 +342,7 @@ function stripPng(buf: Buffer): Buffer {
 
 route("POST", "/media", async ({ request, url }) => {
   const { user } = await requireVerifiedAdult(request);
-  rateLimit(`upload:${user.id}`, 40, 60 * 60 * 1000);
+  await rateLimit(`upload:${user.id}`, 40, 60 * 60 * 1000);
   const scope = url.searchParams.get("scope") === "message" ? "message" : "public";
   const conversationId = url.searchParams.get("conversationId");
   const sql = await db();
@@ -464,7 +464,7 @@ route("POST", "/notifications/read", async ({ request }) => {
 // ---------------------------------------------------------------- contact us
 route("POST", "/contact", async ({ request }) => {
   const { clientIp } = await import("../http");
-  rateLimit(`contact:${clientIp(request)}`, 5, 60 * 60 * 1000);
+  await rateLimit(`contact:${clientIp(request)}`, 5, 60 * 60 * 1000);
   const auth = await getAuth(request);
   const input = await body(
     request,
@@ -496,5 +496,21 @@ route("POST", "/contact", async ({ request }) => {
       clean(input.message, 100),
       "/admin?tab=contact",
     );
+  return { ok: true };
+});
+
+/** Ephemeral "is typing…" signal — never stored. */
+route("POST", "/messages/conversations/:id/typing", async ({ request, params }) => {
+  const { user } = await requireAdult(request);
+  const sql = await db();
+  const m = await membership(sql, params["id"]!, user.id);
+  if (!m || m.status !== "accepted") return { ok: true };
+  const others =
+    await sql`select user_id from conversation_members where conversation_id = ${params["id"]!} and user_id <> ${user.id} and status = 'accepted'`;
+  await publish({
+    users: others.map((o) => o["user_id"] as string),
+    type: "typing",
+    data: { conversationId: params["id"], userId: user.id, name: publicName(user) },
+  });
   return { ok: true };
 });

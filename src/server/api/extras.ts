@@ -252,7 +252,7 @@ route("GET", "/therapists/partners", async ({ request }) => {
 route("POST", "/briefs", async ({ request }) => {
   const auth = await requireUser(request);
   if (auth.childMode) throw forbidden();
-  rateLimit(`brief:${auth.user.id}`, 10, 24 * 60 * 60 * 1000);
+  await rateLimit(`brief:${auth.user.id}`, 10, 24 * 60 * 60 * 1000);
   const input = await body(
     request,
     z.object({
@@ -304,7 +304,7 @@ route("POST", "/portal/apply", async ({ request }) => {
   const auth = await requireUser(request);
   if (auth.user.age_group !== "adult" || auth.childMode)
     throw forbidden("Clinician accounts are for adults.");
-  rateLimit(`apply:${auth.user.id}`, 5, 24 * 60 * 60 * 1000);
+  await rateLimit(`apply:${auth.user.id}`, 5, 24 * 60 * 60 * 1000);
   const input = await body(
     request,
     z.object({

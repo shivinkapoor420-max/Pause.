@@ -136,6 +136,13 @@ function Settings() {
                 label="Show my display name instead"
                 description="Off by default. Your email and sign-in username are never shown either way."
               />
+              <PhotoUploads
+                identityMode={user.identityMode}
+                avatarId={user.avatarId}
+                coverId={user.coverId}
+                verified={user.emailVerified}
+                onSaved={(b, msg) => void patch(b, msg)}
+              />
               <div className="py-3">
                 <p className="font-bold">Who can see my profile and posts</p>
                 <div className="mt-2 flex gap-2">
@@ -518,5 +525,102 @@ function PushToggle() {
       label="Notifications on this device"
       description="Notification text is fetched privately from Pause — it never passes through push servers."
     />
+  );
+}
+
+function PhotoUploads({
+  identityMode,
+  avatarId,
+  coverId,
+  verified,
+  onSaved,
+}: {
+  identityMode: "alias" | "name";
+  avatarId: string | null;
+  coverId: string | null;
+  verified: boolean;
+  onSaved: (b: Record<string, unknown>, msg: string) => void;
+}) {
+  const upload = async (file: File | undefined, field: "avatarId" | "coverId") => {
+    if (!file) return;
+    if (file.size > 4 * 1024 * 1024) {
+      toast.error("Images must be under 4 MB.");
+      return;
+    }
+    try {
+      const r = await api<{ id: string }>("/media?scope=public", {
+        raw: file,
+        headers: { "content-type": file.type },
+      });
+      onSaved(
+        { [field]: r.id },
+        field === "avatarId" ? "Profile photo updated" : "Cover image updated",
+      );
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Upload failed");
+    }
+  };
+  if (!verified)
+    return (
+      <p className="py-3 text-sm text-muted-foreground">
+        Verify your email to add a profile photo or cover image.
+      </p>
+    );
+  return (
+    <div className="space-y-3 py-3">
+      <div>
+        <p className="font-bold">Profile photo</p>
+        <p className="text-sm text-muted-foreground">
+          {identityMode === "name"
+            ? "Shown on your profile and posts."
+            : "Only shown if you choose to show your name — your illustrated avatar is used otherwise."}{" "}
+          Location data is removed automatically.
+        </p>
+        <div className="mt-2 flex items-center gap-2">
+          <label className="cursor-pointer rounded-full border-2 border-ink px-4 py-1.5 text-sm font-bold">
+            Upload
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              className="sr-only"
+              onChange={(e) => void upload(e.target.files?.[0], "avatarId")}
+            />
+          </label>
+          {avatarId && (
+            <button
+              className="text-sm font-bold underline"
+              onClick={() => onSaved({ avatarId: null }, "Photo removed")}
+            >
+              Remove
+            </button>
+          )}
+        </div>
+      </div>
+      <div>
+        <p className="font-bold">Cover image</p>
+        <p className="text-sm text-muted-foreground">
+          Avoid anything that shows where you live or work.
+        </p>
+        <div className="mt-2 flex items-center gap-2">
+          <label className="cursor-pointer rounded-full border-2 border-ink px-4 py-1.5 text-sm font-bold">
+            Upload
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              className="sr-only"
+              onChange={(e) => void upload(e.target.files?.[0], "coverId")}
+            />
+          </label>
+          {coverId && (
+            <button
+              className="text-sm font-bold underline"
+              onClick={() => onSaved({ coverId: null }, "Cover removed")}
+            >
+              Remove
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
