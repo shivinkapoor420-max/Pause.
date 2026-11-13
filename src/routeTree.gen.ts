@@ -30,6 +30,7 @@ import { Route as WeatherRouteImport } from './routes/weather'
 import { Route as ApiCompanionRouteImport } from './routes/api/companion'
 import { Route as ApiCompanionObserveRouteImport } from './routes/api/companion-observe'
 import { Route as ApiTranscribeRouteImport } from './routes/api/transcribe'
+import { Route as ApiV1SplatRouteImport } from './routes/api/v1/$'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -136,6 +137,11 @@ const ApiTranscribeRoute = ApiTranscribeRouteImport.update({
   path: '/api/transcribe',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiV1SplatRoute = ApiV1SplatRouteImport.update({
+  id: '/api/v1/$',
+  path: '/api/v1/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -159,6 +165,7 @@ export interface FileRoutesByFullPath {
   '/api/companion': typeof ApiCompanionRoute
   '/api/companion-observe': typeof ApiCompanionObserveRoute
   '/api/transcribe': typeof ApiTranscribeRoute
+  '/api/v1/$': typeof ApiV1SplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -182,6 +189,7 @@ export interface FileRoutesByTo {
   '/api/companion': typeof ApiCompanionRoute
   '/api/companion-observe': typeof ApiCompanionObserveRoute
   '/api/transcribe': typeof ApiTranscribeRoute
+  '/api/v1/$': typeof ApiV1SplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -206,6 +214,7 @@ export interface FileRoutesById {
   '/api/companion': typeof ApiCompanionRoute
   '/api/companion-observe': typeof ApiCompanionObserveRoute
   '/api/transcribe': typeof ApiTranscribeRoute
+  '/api/v1/$': typeof ApiV1SplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -231,6 +240,7 @@ export interface FileRouteTypes {
     | '/api/companion'
     | '/api/companion-observe'
     | '/api/transcribe'
+    | '/api/v1/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -254,6 +264,7 @@ export interface FileRouteTypes {
     | '/api/companion'
     | '/api/companion-observe'
     | '/api/transcribe'
+    | '/api/v1/$'
   id:
     | '__root__'
     | '/'
@@ -277,6 +288,7 @@ export interface FileRouteTypes {
     | '/api/companion'
     | '/api/companion-observe'
     | '/api/transcribe'
+    | '/api/v1/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -301,6 +313,7 @@ export interface RootRouteChildren {
   ApiCompanionRoute: typeof ApiCompanionRoute
   ApiCompanionObserveRoute: typeof ApiCompanionObserveRoute
   ApiTranscribeRoute: typeof ApiTranscribeRoute
+  ApiV1SplatRoute: typeof ApiV1SplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -452,6 +465,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiTranscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/v1/$': {
+      id: '/api/v1/$'
+      path: '/api/v1/$'
+      fullPath: '/api/v1/$'
+      preLoaderRoute: typeof ApiV1SplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -477,6 +497,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCompanionRoute: ApiCompanionRoute,
   ApiCompanionObserveRoute: ApiCompanionObserveRoute,
   ApiTranscribeRoute: ApiTranscribeRoute,
+  ApiV1SplatRoute: ApiV1SplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
