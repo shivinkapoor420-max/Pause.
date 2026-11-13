@@ -1,6 +1,14 @@
 import { z } from "zod";
 import { db } from "../db";
-import { SESSION_COOKIE, audit, cookie, generateAlias, requireUser, selfView, type UserRow } from "../auth";
+import {
+  SESSION_COOKIE,
+  audit,
+  cookie,
+  generateAlias,
+  requireUser,
+  selfView,
+  type UserRow,
+} from "../auth";
 import { verifyPassword } from "../crypto";
 import { bad, body, clean, clientIp, forbidden, json, rateLimit } from "../http";
 import { route } from "../router";
@@ -28,14 +36,40 @@ route("GET", "/me/state", async ({ request }) => {
   for (const t of tools) toolUse[t["ref"] as string] = t["n"] as number;
   toolUse["grounding"] = grounding.length;
   return {
-    moods: moods.reverse().map((m) => ({ date: toDay(m["day"] as Date), sky: m["sky"], tags: m["tags"] })),
-    journal: journal.map((j) => ({ id: j["id"], date: (j["created_at"] as Date).toISOString(), kind: j["kind"], prompt: j["prompt"], body: j["body"], sky: j["sky"] ?? undefined })),
-    checkins: checkins.map((c) => ({ id: c["id"], date: (c["created_at"] as Date).toISOString(), band: c["band"], answers: c["answers"], flagged: c["flagged"] })),
-    companion: companion.map((c) => ({ id: c["id"], date: (c["created_at"] as Date).toISOString(), band: c["band"], mode: c["mode"], turns: c["turns"], observations: c["observations"] })),
+    moods: moods
+      .reverse()
+      .map((m) => ({ date: toDay(m["day"] as Date), sky: m["sky"], tags: m["tags"] })),
+    journal: journal.map((j) => ({
+      id: j["id"],
+      date: (j["created_at"] as Date).toISOString(),
+      kind: j["kind"],
+      prompt: j["prompt"],
+      body: j["body"],
+      sky: j["sky"] ?? undefined,
+    })),
+    checkins: checkins.map((c) => ({
+      id: c["id"],
+      date: (c["created_at"] as Date).toISOString(),
+      band: c["band"],
+      answers: c["answers"],
+      flagged: c["flagged"],
+    })),
+    companion: companion.map((c) => ({
+      id: c["id"],
+      date: (c["created_at"] as Date).toISOString(),
+      band: c["band"],
+      mode: c["mode"],
+      turns: c["turns"],
+      observations: c["observations"],
+    })),
     toolUse,
-    groundingSessions: grounding.reverse().map((g) => ({ at: (g["created_at"] as Date).toISOString(), ...(g["meta"] as object) })),
+    groundingSessions: grounding
+      .reverse()
+      .map((g) => ({ at: (g["created_at"] as Date).toISOString(), ...(g["meta"] as object) })),
     appData: user.app_data,
-    riskFlagged: checkins.some((c) => c["flagged"] && Date.now() - (c["created_at"] as Date).getTime() < 14 * 86400000),
+    riskFlagged: checkins.some(
+      (c) => c["flagged"] && Date.now() - (c["created_at"] as Date).getTime() < 14 * 86400000,
+    ),
   };
 });
 
@@ -75,11 +109,14 @@ route("PATCH", "/me", async ({ request }) => {
       newAlias: z.boolean().optional(),
     }),
   );
-  if (input.appData && JSON.stringify(input.appData).length > 200_000) throw bad("That's too much data to save.");
-  if (input.settings && JSON.stringify(input.settings).length > 5_000) throw bad("Settings too large.");
+  if (input.appData && JSON.stringify(input.appData).length > 200_000)
+    throw bad("That's too much data to save.");
+  if (input.settings && JSON.stringify(input.settings).length > 5_000)
+    throw bad("Settings too large.");
   // Minors keep private profiles; no social surface exists for them anyway.
   const visibility = user.age_group === "adult" ? input.profileVisibility : "private";
-  if (input.prefs?.leaderboardOptIn && user.age_group !== "adult") throw forbidden("Leaderboards are for adult members.");
+  if (input.prefs?.leaderboardOptIn && user.age_group !== "adult")
+    throw forbidden("Leaderboards are for adult members.");
   const sql = await db();
   const [u] = await sql<UserRow[]>`update users set
       display_name = ${input.displayName ? clean(input.displayName, 60) : user.display_name},
@@ -106,7 +143,14 @@ route("PATCH", "/me", async ({ request }) => {
 
 route("POST", "/moods", async ({ request }) => {
   const auth = await requireUser(request);
-  const input = await body(request, z.object({ sky, tags: z.array(z.string().max(40)).max(12), note: z.string().max(1000).optional() }));
+  const input = await body(
+    request,
+    z.object({
+      sky,
+      tags: z.array(z.string().max(40)).max(12),
+      note: z.string().max(1000).optional(),
+    }),
+  );
   const sql = await db();
   await sql`insert into mood_entries (user_id, day, sky, tags, note, assisted_by)
     values (${auth.user.id}, current_date, ${input.sky}, ${input.tags}, ${clean(input.note ?? "", 1000)}, ${auth.childMode ? auth.parentId : null})
@@ -130,9 +174,14 @@ route("POST", "/journal", async ({ request }) => {
     }),
   );
   if (input.kind !== "drawing" && input.body.length > 20000) throw bad("That entry is too long.");
-  if (input.kind === "drawing" && !/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(input.body)) throw bad("Drawing must be an image.");
+  if (
+    input.kind === "drawing" &&
+    !/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(input.body)
+  )
+    throw bad("Drawing must be an image.");
   const controls = (user.prefs["controls"] as { journal?: boolean } | undefined) ?? {};
-  if (user.guardian_id && controls.journal === false) throw forbidden("Journaling is switched off for this profile.");
+  if (user.guardian_id && controls.journal === false)
+    throw forbidden("Journaling is switched off for this profile.");
   const sql = await db();
   const [row] = await sql`insert into journal_entries (user_id, kind, prompt, body, sky)
     values (${user.id}, ${input.kind}, ${clean(input.prompt, 400)}, ${input.kind === "drawing" ? input.body : clean(input.body, 20000)}, ${input.sky ?? null})
@@ -162,20 +211,33 @@ route("DELETE", "/journal/:id", async ({ request, params }) => {
 
 route("POST", "/checkins", async ({ request }) => {
   const auth = await requireUser(request);
-  const input = await body(request, z.object({ band: z.string().max(10), answers: z.record(z.number()), flagged: z.boolean() }));
+  const input = await body(
+    request,
+    z.object({ band: z.string().max(10), answers: z.record(z.number()), flagged: z.boolean() }),
+  );
   const sql = await db();
-  const [row] = await sql`insert into checkins (user_id, band, answers, flagged) values (${auth.user.id}, ${input.band}, ${sql.json(input.answers as never)}, ${input.flagged}) returning id`;
+  const [row] =
+    await sql`insert into checkins (user_id, band, answers, flagged) values (${auth.user.id}, ${input.band}, ${sql.json(input.answers as never)}, ${input.flagged}) returning id`;
   if (input.flagged && auth.user.guardian_id) {
     const { notify } = await import("../services");
     // Safety alerts always reach the guardian — whatever the teen privacy setting.
-    await notify(auth.user.guardian_id, "family", `Please check in with ${auth.user.display_name} today`, "A recent check-in suggested they may be struggling. Crisis resources are on the Family page.", "/family");
+    await notify(
+      auth.user.guardian_id,
+      "family",
+      `Please check in with ${auth.user.display_name} today`,
+      "A recent check-in suggested they may be struggling. Crisis resources are on the Family page.",
+      "/family",
+    );
   }
   return { id: row!["id"] };
 });
 
 route("POST", "/companion/sessions", async ({ request }) => {
   const { user } = await requireUser(request);
-  const input = await body(request, z.object({ id: z.string().uuid(), band: z.string().max(10), mode: z.enum(["voice", "text"]) }));
+  const input = await body(
+    request,
+    z.object({ id: z.string().uuid(), band: z.string().max(10), mode: z.enum(["voice", "text"]) }),
+  );
   const sql = await db();
   await sql`insert into companion_sessions (id, user_id, band, mode) values (${input.id}, ${user.id}, ${input.band}, ${input.mode}) on conflict do nothing`;
   return { ok: true };
@@ -183,7 +245,13 @@ route("POST", "/companion/sessions", async ({ request }) => {
 
 route("PATCH", "/companion/sessions/:id", async ({ request, params }) => {
   const { user } = await requireUser(request);
-  const input = await body(request, z.object({ turns: z.array(z.record(z.unknown())).max(400), observations: z.array(z.record(z.unknown())).max(400) }));
+  const input = await body(
+    request,
+    z.object({
+      turns: z.array(z.record(z.unknown())).max(400),
+      observations: z.array(z.record(z.unknown())).max(400),
+    }),
+  );
   const sql = await db();
   // Transcripts are only retained when the person has opted in to Pip remembering.
   const turns = user.memory_consent || user.age_group !== "adult" ? input.turns : [];
@@ -205,7 +273,20 @@ route("POST", "/activity", async ({ request }) => {
   rateLimit(`activity:${user.id}`, 120, 60 * 60 * 1000);
   const input = await body(
     request,
-    z.object({ kind: z.enum(["tool", "grounding", "breathing", "story", "colouring", "routine", "meditation", "sleep"]), ref: z.string().max(60), meta: z.record(z.unknown()).optional() }),
+    z.object({
+      kind: z.enum([
+        "tool",
+        "grounding",
+        "breathing",
+        "story",
+        "colouring",
+        "routine",
+        "meditation",
+        "sleep",
+      ]),
+      ref: z.string().max(60),
+      meta: z.record(z.unknown()).optional(),
+    }),
   );
   const sql = await db();
   await sql`insert into activity_events (user_id, kind, ref, meta) values (${user.id}, ${input.kind}, ${input.ref}, ${sql.json((input.meta ?? {}) as never)})`;
@@ -218,29 +299,46 @@ route("POST", "/activity", async ({ request }) => {
 route("GET", "/insights", async ({ request, url }) => {
   const { user } = await requireUser(request);
   const premium = await isPremium(user);
-  const range = url.searchParams.get("range") === "month" ? 30 : url.searchParams.get("range") === "year" ? 365 : 7;
-  if (range > 30 && !premium) throw forbidden("Year-long insights are part of Premium.", "premium_required");
+  const range =
+    url.searchParams.get("range") === "month"
+      ? 30
+      : url.searchParams.get("range") === "year"
+        ? 365
+        : 7;
+  if (range > 30 && !premium)
+    throw forbidden("Year-long insights are part of Premium.", "premium_required");
   const sql = await db();
-  const days = await sql`select day, sky, tags from mood_entries where user_id = ${user.id} and day > current_date - ${range}::int order by day`;
-  const activity = await sql`select date_trunc('day', created_at)::date as day, count(*)::int as n from activity_events
+  const days =
+    await sql`select day, sky, tags from mood_entries where user_id = ${user.id} and day > current_date - ${range}::int order by day`;
+  const activity =
+    await sql`select date_trunc('day', created_at)::date as day, count(*)::int as n from activity_events
     where user_id = ${user.id} and created_at > now() - ${`${range} days`}::interval group by 1 order by 1`;
   const tagCounts: Record<string, number> = {};
-  for (const d of days) for (const t of d["tags"] as string[]) tagCounts[t] = (tagCounts[t] ?? 0) + 1;
+  for (const d of days)
+    for (const t of d["tags"] as string[]) tagCounts[t] = (tagCounts[t] ?? 0) + 1;
   const skyScore: Record<string, number> = { sunny: 5, partly: 4, cloudy: 3, rainy: 2, stormy: 1 };
   const advanced = premium
     ? {
         // Which activities tend to sit alongside lighter days — an observation, never a prescription.
-        topTags: Object.entries(tagCounts).sort((a, b) => b[1] - a[1]).slice(0, 6),
+        topTags: Object.entries(tagCounts)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 6),
         weekdayPattern: [0, 1, 2, 3, 4, 5, 6].map((wd) => {
           const list = days.filter((d) => new Date(d["day"] as Date).getUTCDay() === wd);
-          return list.length ? list.reduce((a, d) => a + skyScore[d["sky"] as string]!, 0) / list.length : null;
+          return list.length
+            ? list.reduce((a, d) => a + skyScore[d["sky"] as string]!, 0) / list.length
+            : null;
         }),
       }
     : null;
   return {
     range,
     premium,
-    moods: days.map((d) => ({ day: toDay(d["day"] as Date), sky: d["sky"], score: skyScore[d["sky"] as string] })),
+    moods: days.map((d) => ({
+      day: toDay(d["day"] as Date),
+      sky: d["sky"],
+      score: skyScore[d["sky"] as string],
+    })),
     activity: activity.map((a) => ({ day: toDay(a["day"] as Date), n: a["n"] })),
     advanced,
   };
@@ -271,20 +369,36 @@ route("GET", "/me/export", async ({ request }) => {
   const { user } = await requireUser(request);
   rateLimit(`export:${user.id}`, 5, 60 * 60 * 1000);
   const sql = await db();
-  const [moods, journal, checkins, companion, games, posts, comments, messages, consents] = await Promise.all([
-    sql`select day, sky, tags, note, created_at from mood_entries where user_id = ${user.id}`,
-    sql`select kind, prompt, body, sky, created_at from journal_entries where user_id = ${user.id}`,
-    sql`select band, answers, flagged, created_at from checkins where user_id = ${user.id}`,
-    sql`select mode, turns, observations, created_at from companion_sessions where user_id = ${user.id}`,
-    sql`select game, difficulty, score, duration_s, created_at from game_results where user_id = ${user.id}`,
-    sql`select body, anonymous, created_at from posts where author_id = ${user.id}`,
-    sql`select body, created_at from comments where author_id = ${user.id}`,
-    sql`select body, kind, created_at from messages where sender_id = ${user.id} and deleted_at is null`,
-    sql`select kind, granted, version, created_at from consents where user_id = ${user.id}`,
-  ]);
-  const data = { exportedAt: new Date().toISOString(), profile: selfView(user), moods, journal, checkins, companion, games, posts, comments, messages, consents };
+  const [moods, journal, checkins, companion, games, posts, comments, messages, consents] =
+    await Promise.all([
+      sql`select day, sky, tags, note, created_at from mood_entries where user_id = ${user.id}`,
+      sql`select kind, prompt, body, sky, created_at from journal_entries where user_id = ${user.id}`,
+      sql`select band, answers, flagged, created_at from checkins where user_id = ${user.id}`,
+      sql`select mode, turns, observations, created_at from companion_sessions where user_id = ${user.id}`,
+      sql`select game, difficulty, score, duration_s, created_at from game_results where user_id = ${user.id}`,
+      sql`select body, anonymous, created_at from posts where author_id = ${user.id}`,
+      sql`select body, created_at from comments where author_id = ${user.id}`,
+      sql`select body, kind, created_at from messages where sender_id = ${user.id} and deleted_at is null`,
+      sql`select kind, granted, version, created_at from consents where user_id = ${user.id}`,
+    ]);
+  const data = {
+    exportedAt: new Date().toISOString(),
+    profile: selfView(user),
+    moods,
+    journal,
+    checkins,
+    companion,
+    games,
+    posts,
+    comments,
+    messages,
+    consents,
+  };
   return new Response(JSON.stringify(data, null, 2), {
-    headers: { "content-type": "application/json", "content-disposition": `attachment; filename="pause-export-${user.username}.json"` },
+    headers: {
+      "content-type": "application/json",
+      "content-disposition": `attachment; filename="pause-export-${user.username}.json"`,
+    },
   });
 });
 
@@ -292,13 +406,39 @@ route("POST", "/me/delete", async ({ request }) => {
   const auth = await requireUser(request);
   if (auth.childMode) throw forbidden();
   const { password } = await body(request, z.object({ password: z.string() }));
-  if (!(await verifyPassword(password, auth.user.password_hash))) throw bad("Your password isn't right.");
+  if (!(await verifyPassword(password, auth.user.password_hash)))
+    throw bad("Your password isn't right.");
   const sql = await db();
   if (auth.user.role === "admin") {
-    const admins = await sql`select count(*)::int as n from users where role = 'admin' and status = 'active'`;
-    if ((admins[0]?.["n"] as number) <= 1) throw bad("You're the only administrator — promote someone else first.");
+    const admins =
+      await sql`select count(*)::int as n from users where role = 'admin' and status = 'active'`;
+    if ((admins[0]?.["n"] as number) <= 1)
+      throw bad("You're the only administrator — promote someone else first.");
   }
   await audit(auth.user.id, "account.delete", auth.user.id, {}, clientIp(request));
   await sql`delete from users where id = ${auth.user.id}`; // cascades: child profiles, entries, posts, messages
   return json({ ok: true }, { headers: { "set-cookie": cookie(SESSION_COOKIE, "", 0) } });
+});
+
+/** Today's gentle quests — activity-based only, never mood-based. */
+route("GET", "/me/today", async ({ request }) => {
+  const { user } = await requireUser(request);
+  const sql = await db();
+  const [t] = await sql`select
+    exists (select 1 from mood_entries where user_id = ${user.id} and day = current_date) as checked_in,
+    exists (select 1 from journal_entries where user_id = ${user.id} and created_at > current_date) as journaled,
+    exists (select 1 from activity_events where user_id = ${user.id} and kind in ('breathing','grounding','tool','meditation','sleep') and created_at > current_date) as breathed,
+    exists (select 1 from game_results where user_id = ${user.id} and created_at > current_date) as played,
+    (select coalesce(sum(amount),0) from xp_ledger where user_id = ${user.id})::int as xp,
+    (select count(distinct day) from mood_entries where user_id = ${user.id})::int as days_showed_up`;
+  const xp = (t?.["xp"] as number) ?? 0;
+  const level = Math.floor(Math.sqrt(xp / 50)) + 1;
+  const thisLevel = 50 * (level - 1) ** 2;
+  const nextLevel = 50 * level ** 2;
+  return {
+    ...t,
+    level,
+    progress: (xp - thisLevel) / (nextLevel - thisLevel),
+    nextLevelXp: nextLevel,
+  };
 });

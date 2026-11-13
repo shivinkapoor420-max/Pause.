@@ -121,7 +121,10 @@ function Modes() {
       />
 
       <div className="mt-3">
-        <PillButton variant="outline" onClick={() => setSettings({ calmMode: !state.settings.calmMode })}>
+        <PillButton
+          variant="outline"
+          onClick={() => setSettings({ calmMode: !state.settings.calmMode })}
+        >
           Switch to {state.settings.calmMode ? "full mode" : "calm mode"}
         </PillButton>
       </div>

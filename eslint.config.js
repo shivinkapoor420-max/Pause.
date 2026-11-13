@@ -34,6 +34,8 @@ export default tseslint.config(
       ],
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
       "@typescript-eslint/no-unused-vars": "off",
+      // API responses are typed at the server; UI code reads them loosely.
+      "@typescript-eslint/no-explicit-any": "off",
     },
   },
   eslintPluginPrettier,

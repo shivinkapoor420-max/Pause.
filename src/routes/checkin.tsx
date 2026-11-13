@@ -14,7 +14,11 @@ export const Route = createFileRoute("/checkin")({
           "An adaptive check-in that changes its questions, input and tone for young children, teens and adults.",
       },
       { property: "og:title", content: "Deeper check-in — Pause." },
-      { property: "og:description", content: "Descriptive questions about mood, sleep, sensory experience and daily functioning." },
+      {
+        property: "og:description",
+        content:
+          "Descriptive questions about mood, sleep, sensory experience and daily functioning.",
+      },
     ],
   }),
   component: Checkin,
@@ -42,7 +46,6 @@ function Checkin() {
 
   const q = questions[step]!;
   const flagged = questions.some((qq) => qq.risk && (answers[qq.id] ?? 0) >= 1);
-
 
   if (done) {
     return (
@@ -140,7 +143,9 @@ function Checkin() {
                 }
               }}
               className={`min-h-11 rounded-2xl border-2 px-5 py-4 text-left text-base font-bold transition-colors ${
-                answers[q.id] === i ? "border-ink bg-primary" : "border-border bg-muted hover:border-ink"
+                answers[q.id] === i
+                  ? "border-ink bg-primary"
+                  : "border-border bg-muted hover:border-ink"
               }`}
             >
               {option}

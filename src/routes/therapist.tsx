@@ -73,7 +73,9 @@ function Therapist() {
       lines.push("");
     }
     if (state.riskFlagged) {
-      lines.push("NOTE: a direct safety question was answered affirmatively at some point. Crisis resources were shown in-app.");
+      lines.push(
+        "NOTE: a direct safety question was answered affirmatively at some point. Crisis resources were shown in-app.",
+      );
       lines.push("");
     }
     lines.push(
@@ -94,7 +96,9 @@ function Therapist() {
         ? `Profile maintained by caregiver${state.caregiverName ? ` (${state.caregiverName})` : ""} for ${state.name || "child"}.`
         : `Name used in app: ${state.name || "not given"}.`,
     );
-    lines.push(`Using Pause. for ${daysUsing(state)} day(s); ${state.moods.length} daily check-in(s), ${state.checkins.length} deeper check-in(s), ${state.journal.length} journal entr(y/ies).`);
+    lines.push(
+      `Using Pause. for ${daysUsing(state)} day(s); ${state.moods.length} daily check-in(s), ${state.checkins.length} deeper check-in(s), ${state.journal.length} journal entr(y/ies).`,
+    );
     lines.push("");
     if (state.riskFlagged) {
       lines.push("URGENT — FLAGGED BY THE PERSON'S OWN ANSWER");
@@ -137,9 +141,11 @@ function Therapist() {
             You don't have to explain it all from scratch.
           </h2>
           <p className="mt-3 text-muted-foreground">
-            Pause. can gather what {child ? "you've logged about " + (state.name || "your child") : "you've logged"} into a short brief — patterns
-            described in plain language, plus a few of {child ? "their" : "your"} own words. Then{" "}
-            {child ? "you" : "you"} read it, change anything, and decide whether it goes anywhere.
+            Pause. can gather what{" "}
+            {child ? "you've logged about " + (state.name || "your child") : "you've logged"} into a
+            short brief — patterns described in plain language, plus a few of{" "}
+            {child ? "their" : "your"} own words. Then {child ? "you" : "you"} read it, change
+            anything, and decide whether it goes anywhere.
           </p>
           <ul className="mt-4 grid gap-2 text-sm font-semibold">
             <li className="rounded-2xl bg-muted p-3">Nothing is sent without your review.</li>
@@ -202,8 +208,8 @@ function Therapist() {
           <div className="mt-6 rounded-3xl border-2 border-border p-5">
             <h3 className="font-display text-xl font-bold">Where should it go?</h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              Briefs can only be sent to our <strong>partner network</strong> — therapists who signed
-              up to Pause. directly and agreed to receive them. Everyone else in the{" "}
+              Briefs can only be sent to our <strong>partner network</strong> — therapists who
+              signed up to Pause. directly and agreed to receive them. Everyone else in the{" "}
               <Link to="/directory" className="font-bold underline">
                 general directory
               </Link>{" "}
@@ -257,7 +263,9 @@ function Therapist() {
                 setStage("sent");
               }}
             >
-              {chosen ? `Send to ${chosen.name.split(" ").slice(-1)[0]}` : "Pick a partner therapist"}
+              {chosen
+                ? `Send to ${chosen.name.split(" ").slice(-1)[0]}`
+                : "Pick a partner therapist"}
             </PillButton>
             <PillButton
               variant="outline"

@@ -1,4 +1,16 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import { toast } from "sonner";
+import { api } from "@/lib/api";
+import { useSession } from "@/lib/session";
+import type { AgeGroup } from "@/lib/games-catalog";
 
 export type AgeBand = "child" | "teen" | "adult";
 export type Sky = "sunny" | "partly" | "cloudy" | "rainy" | "stormy";
@@ -148,6 +160,8 @@ export type TherapistNote = {
 export type AppState = {
   name: string;
   band: AgeBand | null;
+  /** Fine-grained age group from the server: early (4–7), kids (8–12), teen, adult. */
+  ageGroup: AgeGroup | null;
   caregiverName: string;
   /** Caregiver's number for child profiles, the person's own for teens/adults. Optional. */
   phone: string;
@@ -178,7 +192,12 @@ export type AppState = {
   therapistNotes: Record<string, TherapistNote>;
   riskFlagged: boolean;
   /** Briefs and updates shared with partner-network therapists, kept on-device. */
-  sentBriefs: { at: string; therapistId: string; therapistName: string; kind?: "brief" | "update" }[];
+  sentBriefs: {
+    at: string;
+    therapistId: string;
+    therapistName: string;
+    kind?: "brief" | "update";
+  }[];
   /** Therapist-side portal account, if this device signed up as a therapist. */
   portal: PortalTherapist | null;
   /** Briefs the portal has confirmed receipt of: sentBrief `at` → confirmed ISO date. */
@@ -186,8 +205,6 @@ export type AppState = {
   /** Grounding Room sessions, feeding the Growth Garden. */
   groundingSessions: { at: string; theme: string; breaths: number }[];
 };
-
-const STORAGE_KEY = "pause.state.v1";
 
 export const defaultRoutine: RoutineStep[] = [
   { id: "r-wake", label: "Wake up", icon: "wake" },
@@ -202,6 +219,7 @@ export const defaultRoutine: RoutineStep[] = [
 const initialState: AppState = {
   name: "",
   band: null,
+  ageGroup: null,
   caregiverName: "",
   phone: "",
   smsReminders: false,
@@ -240,8 +258,6 @@ const initialState: AppState = {
   groundingSessions: [],
 };
 
-
-
 type Ctx = {
   state: AppState;
   ready: boolean;
@@ -262,7 +278,7 @@ type Ctx = {
   logGrounding: (theme: string, breaths: number) => void;
   confirmBriefReceipt: (at: string) => void;
   reset: () => void;
-
+  logActivity: (kind: string, ref: string, meta?: Record<string, unknown>) => void;
 };
 
 const AppStateContext = createContext<Ctx | null>(null);
@@ -271,34 +287,102 @@ export function today() {
   return new Date().toISOString().slice(0, 10);
 }
 
+/** Keys kept in the server-side private `app_data` blob (small UI extras). */
+const blobKeys = [
+  "caregiverName",
+  "smsReminders",
+  "voiceConsent",
+  "snippetConsent",
+  "startedOn",
+  "tutorialDone",
+  "pipIntroDone",
+  "questionsUnlocked",
+  "routine",
+  "routineDone",
+  "therapistNotes",
+  "sentBriefs",
+  "portal",
+  "portalReceipts",
+  "teenPrivacy",
+] as const;
+
+const bandFor = (g: AgeGroup): AgeBand => (g === "early" || g === "kids" ? "child" : g);
+
+function send(path: string, body?: unknown, method?: string) {
+  void api(path, { ...(body !== undefined ? { body } : {}), ...(method ? { method } : {}) }).catch(
+    (e) => {
+      console.warn("[pause] save failed", path, e);
+      toast.error(e instanceof Error ? e.message : "Couldn't save — check your connection.");
+    },
+  );
+}
+
+/**
+ * App state is now backed by the Pause server. The signed-in account is the
+ * source of truth; this provider hydrates from /api/v1/me/state and writes
+ * every change back through the API. Nothing important lives in localStorage.
+ */
 export function AppStateProvider({ children }: { children: ReactNode }) {
+  const { user } = useSession();
   const [state, setState] = useState<AppState>(initialState);
   const [ready, setReady] = useState(false);
+  const dirtySessions = useRef(new Set<string>());
+  const stateRef = useRef(state);
+  stateRef.current = state;
+  const blobTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sessionTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const saved = JSON.parse(raw) as AppState;
+    if (!user) {
+      setState(initialState);
+      setReady(true);
+      return;
+    }
+    let alive = true;
+    setReady(false);
+    api<any>("/me/state")
+      .then((remote) => {
+        if (!alive) return;
+        const extras = (remote.appData ?? {}) as Partial<AppState>;
         setState({
           ...initialState,
-          ...saved,
-          settings: { ...initialState.settings, ...saved.settings },
+          ...extras,
+          name: user.displayName,
+          phone: user.phone,
+          band: bandFor(user.ageGroup),
+          ageGroup: user.ageGroup,
+          consented: user.consented,
+          moods: remote.moods,
+          journal: remote.journal,
+          checkins: remote.checkins,
+          companion: remote.companion,
+          toolUse: remote.toolUse,
+          groundingSessions: remote.groundingSessions,
+          riskFlagged: remote.riskFlagged,
+          settings: { ...initialState.settings, ...(user.settings as Partial<Settings>) },
+          teenPrivacy: {
+            caregiverInvited: !!user.guardianId,
+            shareTrends: user.prefs?.shareTrendsWithGuardian === true,
+          },
+          startedOn: extras.startedOn ?? user.createdAt.slice(0, 10),
         });
-      }
-    } catch {
-      /* start fresh */
-    }
-    setReady(true);
-  }, []);
+      })
+      .catch(() =>
+        setState({
+          ...initialState,
+          band: bandFor(user.ageGroup),
+          ageGroup: user.ageGroup,
+          name: user.displayName,
+        }),
+      )
+      .finally(() => alive && setReady(true));
+    return () => {
+      alive = false;
+    };
+  }, [user?.id]);
 
+  // Accessibility + age theming applied to <html>.
   useEffect(() => {
-    if (!ready) return;
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }, [state, ready]);
-
-  useEffect(() => {
-    if (!ready) return;
     const root = document.documentElement;
     const s = state.settings;
     root.classList.toggle("calm", s.calmMode);
@@ -309,34 +393,98 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     root.classList.toggle("color-vivid", s.colorIntensity === "vivid");
     root.classList.toggle("layout-single", s.layout === "single-focus");
     root.style.setProperty("--root-font-size", `${Math.round(s.textScale * 100)}%`);
-  }, [ready, state.settings]);
+    root.dataset["age"] = user?.ageGroup ?? "public";
+    root.dataset["theme"] = (user?.prefs?.theme as string) || "meadow";
+  }, [state.settings, user?.ageGroup, user?.prefs?.theme]);
 
   const value = useMemo<Ctx>(() => {
-    const update = (patch: Partial<AppState>) => setState((s) => ({ ...s, ...patch }));
-    const patchSession = (id: string, fn: (s: CompanionSession) => CompanionSession) =>
-      setState((s) => ({
-        ...s,
-        companion: s.companion.map((c) => (c.id === id ? fn(c) : c)),
-      }));
+    const scheduleBlob = () => {
+      if (blobTimer.current) clearTimeout(blobTimer.current);
+      blobTimer.current = setTimeout(() => {
+        const s = stateRef.current;
+        const appData: Record<string, unknown> = {};
+        for (const k of blobKeys) appData[k] = s[k];
+        send("/me", { appData }, "PATCH");
+      }, 600);
+    };
+    const scheduleSessions = () => {
+      if (sessionTimer.current) clearTimeout(sessionTimer.current);
+      sessionTimer.current = setTimeout(() => {
+        for (const id of dirtySessions.current) {
+          const sess = stateRef.current.companion.find((c) => c.id === id);
+          if (sess)
+            send(
+              `/companion/sessions/${id}`,
+              { turns: sess.turns, observations: sess.observations },
+              "PATCH",
+            );
+        }
+        dirtySessions.current.clear();
+      }, 1200);
+    };
+    const update = (patch: Partial<AppState>) => {
+      setState((s) => ({ ...s, ...patch }));
+      if (patch.name !== undefined || patch.phone !== undefined) {
+        send(
+          "/me",
+          {
+            ...(patch.name ? { displayName: patch.name } : {}),
+            ...(patch.phone !== undefined ? { phone: patch.phone } : {}),
+          },
+          "PATCH",
+        );
+      }
+      if (patch.teenPrivacy && user?.ageGroup === "teen")
+        send("/me/guardian-sharing", { share: patch.teenPrivacy.shareTrends });
+      if (patch.companion && patch.companion.length === 0)
+        send("/companion/sessions", undefined, "DELETE");
+      if (patch.journal && patch.journal.length === 0)
+        for (const j of stateRef.current.journal) send(`/journal/${j.id}`, undefined, "DELETE");
+      if (blobKeys.some((k) => k in patch)) scheduleBlob();
+    };
+    const patchSession = (id: string, fn: (s: CompanionSession) => CompanionSession) => {
+      setState((s) => ({ ...s, companion: s.companion.map((c) => (c.id === id ? fn(c) : c)) }));
+      dirtySessions.current.add(id);
+      scheduleSessions();
+    };
+    const logActivity = (kind: string, ref: string, meta?: Record<string, unknown>) =>
+      send("/activity", { kind, ref, ...(meta ? { meta } : {}) });
 
     return {
       state,
       ready,
       update,
-      setMood: (sky, tags) =>
+      logActivity,
+      setMood: (sky, tags) => {
         setState((s) => ({
           ...s,
           moods: [...s.moods.filter((m) => m.date !== today()), { date: today(), sky, tags }],
-        })),
-      addJournal: (entry) =>
+        }));
+        send("/moods", { sky, tags });
+      },
+      addJournal: (entry) => {
+        const tempId = crypto.randomUUID();
         setState((s) => ({
           ...s,
-          journal: [
-            { ...entry, id: crypto.randomUUID(), date: new Date().toISOString() },
-            ...s.journal,
-          ],
-        })),
-      addCheckin: (record) =>
+          journal: [{ ...entry, id: tempId, date: new Date().toISOString() }, ...s.journal],
+        }));
+        void api<{ id: string }>("/journal", {
+          body: {
+            kind: entry.kind,
+            prompt: entry.prompt,
+            body: entry.body,
+            ...(entry.sky ? { sky: entry.sky } : {}),
+          },
+        })
+          .then((r) =>
+            setState((s) => ({
+              ...s,
+              journal: s.journal.map((j) => (j.id === tempId ? { ...j, id: r.id } : j)),
+            })),
+          )
+          .catch((e) => toast.error(e.message));
+      },
+      addCheckin: (record) => {
         setState((s) => ({
           ...s,
           riskFlagged: s.riskFlagged || record.flagged,
@@ -344,26 +492,28 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
             { ...record, id: crypto.randomUUID(), date: new Date().toISOString() },
             ...s.checkins,
           ],
-        })),
-      useTool: (id) =>
-        setState((s) => ({ ...s, toolUse: { ...s.toolUse, [id]: (s.toolUse[id] ?? 0) + 1 } })),
-      setSettings: (patch) => setState((s) => ({ ...s, settings: { ...s.settings, ...patch } })),
+        }));
+        send("/checkins", record);
+      },
+      useTool: (id) => {
+        setState((s) => ({ ...s, toolUse: { ...s.toolUse, [id]: (s.toolUse[id] ?? 0) + 1 } }));
+        logActivity("tool", id);
+      },
+      setSettings: (patch) => {
+        setState((s) => ({ ...s, settings: { ...s.settings, ...patch } }));
+        if (user) send("/me", { settings: patch }, "PATCH");
+      },
       startCompanionSession: (mode) => {
         const id = crypto.randomUUID();
+        const band = stateRef.current.band ?? "adult";
         setState((s) => ({
           ...s,
           companion: [
-            {
-              id,
-              date: new Date().toISOString(),
-              band: s.band ?? "adult",
-              mode,
-              turns: [],
-              observations: [],
-            },
+            { id, date: new Date().toISOString(), band, mode, turns: [], observations: [] },
             ...s.companion,
           ],
         }));
+        if (user) send("/companion/sessions", { id, band, mode });
         return id;
       },
       addCompanionTurn: (id, turn) =>
@@ -377,8 +527,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
           observations: [...c.observations, { ...obs, at: new Date().toISOString() }],
         })),
       flagRisk: () => setState((s) => ({ ...s, riskFlagged: true })),
-      clearVoiceData: () => setState((s) => ({ ...s, companion: [] })),
-      toggleRoutineStep: (stepId) =>
+      clearVoiceData: () => {
+        setState((s) => ({ ...s, companion: [] }));
+        send("/companion/sessions", undefined, "DELETE");
+      },
+      toggleRoutineStep: (stepId) => {
         setState((s) => {
           const key = today();
           const done = s.routineDone[key] ?? [];
@@ -389,9 +542,14 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
               [key]: done.includes(stepId) ? done.filter((x) => x !== stepId) : [...done, stepId],
             },
           };
-        }),
-      setRoutine: (steps) => setState((s) => ({ ...s, routine: steps })),
-      setTherapistNote: (therapistId, patch) =>
+        });
+        scheduleBlob();
+      },
+      setRoutine: (steps) => {
+        setState((s) => ({ ...s, routine: steps }));
+        scheduleBlob();
+      },
+      setTherapistNote: (therapistId, patch) => {
         setState((s) => ({
           ...s,
           therapistNotes: {
@@ -403,8 +561,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
               ...patch,
             },
           },
-        })),
-      logGrounding: (theme, breaths) =>
+        }));
+        scheduleBlob();
+      },
+      logGrounding: (theme, breaths) => {
         setState((s) => ({
           ...s,
           groundingSessions: [
@@ -412,16 +572,24 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
             { at: new Date().toISOString(), theme, breaths },
           ].slice(-200),
           toolUse: { ...s.toolUse, grounding: (s.toolUse["grounding"] ?? 0) + 1 },
-        })),
-      confirmBriefReceipt: (at) =>
+        }));
+        logActivity("grounding", theme, { theme, breaths });
+      },
+      confirmBriefReceipt: (at) => {
         setState((s) => ({
           ...s,
           portalReceipts: { ...s.portalReceipts, [at]: new Date().toISOString() },
-        })),
-      reset: () => setState({ ...initialState, startedOn: null }),
-
+        }));
+        scheduleBlob();
+      },
+      reset: () => {
+        setState((s) => ({ ...initialState, band: s.band, ageGroup: s.ageGroup, name: s.name }));
+        const appData: Record<string, unknown> = {};
+        for (const k of blobKeys) appData[k] = initialState[k];
+        send("/me", { appData }, "PATCH");
+      },
     };
-  }, [state, ready]);
+  }, [state, ready, user]);
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;
 }
@@ -433,8 +601,8 @@ export function useApp() {
 }
 
 export const bandLabel: Record<AgeBand, string> = {
-  child: "Young child (4–10), caregiver-led",
-  teen: "Tween or teen (11–17)",
+  child: "Child (4–12), with a grown-up's support",
+  teen: "Teen (13–17)",
   adult: "Adult (18+)",
 };
 

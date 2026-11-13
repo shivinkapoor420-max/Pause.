@@ -12,7 +12,8 @@ export class HttpError extends Error {
 
 export const bad = (msg: string, code = "bad_request") => new HttpError(400, msg, code);
 export const unauthorized = (msg = "Please sign in.") => new HttpError(401, msg, "unauthorized");
-export const forbidden = (msg = "You don't have access to this.", code = "forbidden") => new HttpError(403, msg, code);
+export const forbidden = (msg = "You don't have access to this.", code = "forbidden") =>
+  new HttpError(403, msg, code);
 export const notFound = (msg = "Not found.") => new HttpError(404, msg, "not_found");
 
 export function json(data: unknown, init: ResponseInit = {}) {
@@ -32,15 +33,23 @@ export async function body<T extends ZodTypeAny>(request: Request, schema: T): P
   const parsed = schema.safeParse(raw);
   if (!parsed.success) {
     const issue = parsed.error.issues[0];
-    throw bad(issue ? `${issue.path.join(".") || "input"}: ${issue.message}` : "Invalid input.", "validation");
+    throw bad(
+      issue ? `${issue.path.join(".") || "input"}: ${issue.message}` : "Invalid input.",
+      "validation",
+    );
   }
   return parsed.data;
 }
 
 /** Strip control characters and trim; React escapes output, so no HTML encoding is needed here. */
 export function clean(text: string, max = 5000) {
-  // eslint-disable-next-line no-control-regex
-  return text.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "").trim().slice(0, max);
+  return (
+    text
+      // eslint-disable-next-line no-control-regex
+      .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "")
+      .trim()
+      .slice(0, max)
+  );
 }
 
 // ---------------------------------------------------------------- rate limiting
@@ -52,7 +61,11 @@ export function rateLimit(key: string, limit: number, windowMs: number) {
   const now = Date.now();
   const hits = (buckets.get(key) ?? []).filter((t) => now - t < windowMs);
   if (hits.length >= limit) {
-    throw new HttpError(429, "You're going a little fast — please wait a moment and try again.", "rate_limited");
+    throw new HttpError(
+      429,
+      "You're going a little fast — please wait a moment and try again.",
+      "rate_limited",
+    );
   }
   hits.push(now);
   buckets.set(key, hits);

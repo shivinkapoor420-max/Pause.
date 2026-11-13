@@ -15,7 +15,10 @@ export const Route = createFileRoute("/garden")({
           "An illustrated garden that grows slowly over months of check-ins, journal entries and coping tools. It only ever grows.",
       },
       { property: "og:title", content: "Your growth garden — Pause." },
-      { property: "og:description", content: "A keepsake of showing up, not a chart. Nothing wilts, nothing is lost for a gap." },
+      {
+        property: "og:description",
+        content: "A keepsake of showing up, not a chart. Nothing wilts, nothing is lost for a gap.",
+      },
     ],
   }),
   component: GardenPage,
@@ -122,12 +125,21 @@ function GardenPage() {
         aria-label={`${garden.headline} ${garden.items.length} things have grown here.`}
       >
         <svg viewBox="0 0 100 92" className="w-full">
-          <rect width="100" height="92" fill="color-mix(in oklch, var(--color-background) 70%, var(--color-card))" />
+          <rect
+            width="100"
+            height="92"
+            fill="color-mix(in oklch, var(--color-background) 70%, var(--color-card))"
+          />
           <path
             d="M0 74 q16 -6 32 -1 t34 -3 t34 2 V92 H0 Z"
             fill="color-mix(in oklch, var(--color-forest) 16%, transparent)"
           />
-          <path d="M0 74 q16 -6 32 -1 t34 -3 t34 2" fill="none" stroke="var(--color-forest)" strokeWidth="0.6" />
+          <path
+            d="M0 74 q16 -6 32 -1 t34 -3 t34 2"
+            fill="none"
+            stroke="var(--color-forest)"
+            strokeWidth="0.6"
+          />
           {garden.items.map((item) => (
             <Sprout key={item.n} item={item} />
           ))}

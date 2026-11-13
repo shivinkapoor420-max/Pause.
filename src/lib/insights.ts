@@ -47,7 +47,10 @@ export function buildPatterns(state: AppState): PatternTag[] {
       byThread.set(q.thread, [...(byThread.get(q.thread) ?? []), v / (q.scale.length - 1)]);
     }
     const label: Record<string, string> = {
-      autism: band === "child" ? "Autism-related traits in play, speech and sensory reactions" : "Autism-related traits: sensory experience and masking",
+      autism:
+        band === "child"
+          ? "Autism-related traits in play, speech and sensory reactions"
+          : "Autism-related traits: sensory experience and masking",
       sleep: "Sleep disruption",
       mood: band === "child" ? "Meltdowns and time to settle" : "Mood and anxiety",
       function: band === "child" ? "Everyday functioning" : "Executive functioning and daily load",
@@ -73,7 +76,8 @@ export function buildPatterns(state: AppState): PatternTag[] {
   if (state.riskFlagged)
     out.unshift({
       label: "Self-harm risk indicated in a check-in",
-      detail: "This was flagged from a direct question. Crisis resources stay visible until you're safe.",
+      detail:
+        "This was flagged from a direct question. Crisis resources stay visible until you're safe.",
       urgent: true,
     });
 
@@ -104,7 +108,8 @@ export function companionPatterns(state: AppState): PatternTag[] {
   const baseline = observations.slice(0, split);
   const recent = observations.slice(split);
   const shareHeavy = (list: typeof observations) =>
-    list.filter((o) => heavy.has(o.state) && o.confidence >= 0.55).length / Math.max(1, list.length);
+    list.filter((o) => heavy.has(o.state) && o.confidence >= 0.55).length /
+    Math.max(1, list.length);
 
   const recentShare = shareHeavy(recent);
   const baseShare = shareHeavy(baseline);
@@ -135,7 +140,6 @@ export function companionPatterns(state: AppState): PatternTag[] {
 
   return out;
 }
-
 
 export function daysUsing(state: AppState) {
   if (!state.startedOn) return 0;
@@ -180,9 +184,7 @@ export function pipPrimer(state: AppState): string {
   }
   const entry = state.journal[0];
   if (entry?.body)
-    lines.push(
-      `They journalled recently about: ${entry.body.slice(0, 140).replace(/\s+/g, " ")}.`,
-    );
+    lines.push(`They journalled recently about: ${entry.body.slice(0, 140).replace(/\s+/g, " ")}.`);
   return lines.slice(0, 3).join(" ");
 }
 

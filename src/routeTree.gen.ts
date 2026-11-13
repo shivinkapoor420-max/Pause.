@@ -10,31 +10,85 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AboutRouteImport } from './routes/about'
+import { Route as AchievementsRouteImport } from './routes/achievements'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as BillingRouteImport } from './routes/billing'
 import { Route as CheckinRouteImport } from './routes/checkin'
 import { Route as CompanionRouteImport } from './routes/companion'
-import { Route as ConsentRouteImport } from './routes/consent'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as DataRouteImport } from './routes/data'
 import { Route as DirectoryRouteImport } from './routes/directory'
+import { Route as FamilyRouteImport } from './routes/family'
+import { Route as ForgotRouteImport } from './routes/forgot'
 import { Route as GardenRouteImport } from './routes/garden'
 import { Route as GroundingRouteImport } from './routes/grounding'
 import { Route as HomeRouteImport } from './routes/home'
+import { Route as InsightsRouteImport } from './routes/insights'
 import { Route as JournalRouteImport } from './routes/journal'
+import { Route as KidRouteImport } from './routes/kid'
+import { Route as LeaderboardRouteImport } from './routes/leaderboard'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as ModesRouteImport } from './routes/modes'
+import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as PortalRouteImport } from './routes/portal'
+import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as RecoveryRouteImport } from './routes/recovery'
+import { Route as ResetRouteImport } from './routes/reset'
 import { Route as ResourcesRouteImport } from './routes/resources'
+import { Route as SignupRouteImport } from './routes/signup'
 import { Route as TherapistRouteImport } from './routes/therapist'
 import { Route as ToolsRouteImport } from './routes/tools'
+import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as WeatherRouteImport } from './routes/weather'
+import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as ApiCompanionRouteImport } from './routes/api/companion'
 import { Route as ApiCompanionObserveRouteImport } from './routes/api/companion-observe'
 import { Route as ApiTranscribeRouteImport } from './routes/api/transcribe'
+import { Route as BlogIndexRouteImport } from './routes/blog.index'
+import { Route as BlogIdRouteImport } from './routes/blog.$id'
+import { Route as BlogWriteRouteImport } from './routes/blog.write'
+import { Route as CheckoutSandboxRouteImport } from './routes/checkout.sandbox'
+import { Route as CommunityIndexRouteImport } from './routes/community.index'
+import { Route as CommunityCommunitiesRouteImport } from './routes/community.communities'
+import { Route as CommunityGuidelinesRouteImport } from './routes/community.guidelines'
+import { Route as GamesIndexRouteImport } from './routes/games.index'
+import { Route as GamesIdRouteImport } from './routes/games.$id'
+import { Route as MessagesIndexRouteImport } from './routes/messages.index'
+import { Route as MessagesIdRouteImport } from './routes/messages.$id'
+import { Route as SettingsIndexRouteImport } from './routes/settings.index'
+import { Route as SettingsBlockedRouteImport } from './routes/settings.blocked'
+import { Route as UHandleRouteImport } from './routes/u.$handle'
 import { Route as ApiV1SplatRouteImport } from './routes/api/v1/$'
+import { Route as CommunityCSlugRouteImport } from './routes/community.c.$slug'
+import { Route as CommunityPostIdRouteImport } from './routes/community.post.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AchievementsRoute = AchievementsRouteImport.update({
+  id: '/achievements',
+  path: '/achievements',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BillingRoute = BillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CheckinRoute = CheckinRouteImport.update({
@@ -47,9 +101,9 @@ const CompanionRoute = CompanionRouteImport.update({
   path: '/companion',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ConsentRoute = ConsentRouteImport.update({
-  id: '/consent',
-  path: '/consent',
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -67,6 +121,16 @@ const DirectoryRoute = DirectoryRouteImport.update({
   path: '/directory',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FamilyRoute = FamilyRouteImport.update({
+  id: '/family',
+  path: '/family',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotRoute = ForgotRouteImport.update({
+  id: '/forgot',
+  path: '/forgot',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GardenRoute = GardenRouteImport.update({
   id: '/garden',
   path: '/garden',
@@ -82,9 +146,29 @@ const HomeRoute = HomeRouteImport.update({
   path: '/home',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InsightsRoute = InsightsRouteImport.update({
+  id: '/insights',
+  path: '/insights',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const JournalRoute = JournalRouteImport.update({
   id: '/journal',
   path: '/journal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KidRoute = KidRouteImport.update({
+  id: '/kid',
+  path: '/kid',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LeaderboardRoute = LeaderboardRouteImport.update({
+  id: '/leaderboard',
+  path: '/leaderboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ModesRoute = ModesRouteImport.update({
@@ -92,9 +176,24 @@ const ModesRoute = ModesRouteImport.update({
   path: '/modes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NotificationsRoute = NotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PortalRoute = PortalRouteImport.update({
   id: '/portal',
   path: '/portal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileRoute = ProfileRouteImport.update({
@@ -102,9 +201,24 @@ const ProfileRoute = ProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RecoveryRoute = RecoveryRouteImport.update({
+  id: '/recovery',
+  path: '/recovery',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetRoute = ResetRouteImport.update({
+  id: '/reset',
+  path: '/reset',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResourcesRoute = ResourcesRouteImport.update({
   id: '/resources',
   path: '/resources',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TherapistRoute = TherapistRouteImport.update({
@@ -117,9 +231,19 @@ const ToolsRoute = ToolsRouteImport.update({
   path: '/tools',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VerifyRoute = VerifyRouteImport.update({
+  id: '/verify',
+  path: '/verify',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WeatherRoute = WeatherRouteImport.update({
   id: '/weather',
   path: '/weather',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WelcomeRoute = WelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiCompanionRoute = ApiCompanionRouteImport.update({
@@ -137,183 +261,501 @@ const ApiTranscribeRoute = ApiTranscribeRouteImport.update({
   path: '/api/transcribe',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogIndexRoute = BlogIndexRouteImport.update({
+  id: '/blog/',
+  path: '/blog/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogIdRoute = BlogIdRouteImport.update({
+  id: '/blog/$id',
+  path: '/blog/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogWriteRoute = BlogWriteRouteImport.update({
+  id: '/blog/write',
+  path: '/blog/write',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckoutSandboxRoute = CheckoutSandboxRouteImport.update({
+  id: '/checkout/sandbox',
+  path: '/checkout/sandbox',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CommunityIndexRoute = CommunityIndexRouteImport.update({
+  id: '/community/',
+  path: '/community/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CommunityCommunitiesRoute = CommunityCommunitiesRouteImport.update({
+  id: '/community/communities',
+  path: '/community/communities',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CommunityGuidelinesRoute = CommunityGuidelinesRouteImport.update({
+  id: '/community/guidelines',
+  path: '/community/guidelines',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GamesIndexRoute = GamesIndexRouteImport.update({
+  id: '/games/',
+  path: '/games/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GamesIdRoute = GamesIdRouteImport.update({
+  id: '/games/$id',
+  path: '/games/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MessagesIndexRoute = MessagesIndexRouteImport.update({
+  id: '/messages/',
+  path: '/messages/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MessagesIdRoute = MessagesIdRouteImport.update({
+  id: '/messages/$id',
+  path: '/messages/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsIndexRoute = SettingsIndexRouteImport.update({
+  id: '/settings/',
+  path: '/settings/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsBlockedRoute = SettingsBlockedRouteImport.update({
+  id: '/settings/blocked',
+  path: '/settings/blocked',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UHandleRoute = UHandleRouteImport.update({
+  id: '/u/$handle',
+  path: '/u/$handle',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiV1SplatRoute = ApiV1SplatRouteImport.update({
   id: '/api/v1/$',
   path: '/api/v1/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CommunityCSlugRoute = CommunityCSlugRouteImport.update({
+  id: '/community/c/$slug',
+  path: '/community/c/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CommunityPostIdRoute = CommunityPostIdRouteImport.update({
+  id: '/community/post/$id',
+  path: '/community/post/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/achievements': typeof AchievementsRoute
+  '/admin': typeof AdminRoute
+  '/billing': typeof BillingRoute
   '/checkin': typeof CheckinRoute
   '/companion': typeof CompanionRoute
-  '/consent': typeof ConsentRoute
+  '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/data': typeof DataRoute
   '/directory': typeof DirectoryRoute
+  '/family': typeof FamilyRoute
+  '/forgot': typeof ForgotRoute
   '/garden': typeof GardenRoute
   '/grounding': typeof GroundingRoute
   '/home': typeof HomeRoute
+  '/insights': typeof InsightsRoute
   '/journal': typeof JournalRoute
+  '/kid': typeof KidRoute
+  '/leaderboard': typeof LeaderboardRoute
+  '/login': typeof LoginRoute
   '/modes': typeof ModesRoute
+  '/notifications': typeof NotificationsRoute
   '/portal': typeof PortalRoute
+  '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
+  '/recovery': typeof RecoveryRoute
+  '/reset': typeof ResetRoute
   '/resources': typeof ResourcesRoute
+  '/signup': typeof SignupRoute
   '/therapist': typeof TherapistRoute
   '/tools': typeof ToolsRoute
+  '/verify': typeof VerifyRoute
   '/weather': typeof WeatherRoute
+  '/welcome': typeof WelcomeRoute
   '/api/companion': typeof ApiCompanionRoute
   '/api/companion-observe': typeof ApiCompanionObserveRoute
   '/api/transcribe': typeof ApiTranscribeRoute
+  '/blog/$id': typeof BlogIdRoute
+  '/blog/write': typeof BlogWriteRoute
+  '/checkout/sandbox': typeof CheckoutSandboxRoute
+  '/community/communities': typeof CommunityCommunitiesRoute
+  '/community/guidelines': typeof CommunityGuidelinesRoute
+  '/games/$id': typeof GamesIdRoute
+  '/messages/$id': typeof MessagesIdRoute
+  '/settings/blocked': typeof SettingsBlockedRoute
+  '/u/$handle': typeof UHandleRoute
+  '/blog/': typeof BlogIndexRoute
+  '/community/': typeof CommunityIndexRoute
+  '/games/': typeof GamesIndexRoute
+  '/messages/': typeof MessagesIndexRoute
+  '/settings/': typeof SettingsIndexRoute
   '/api/v1/$': typeof ApiV1SplatRoute
+  '/community/c/$slug': typeof CommunityCSlugRoute
+  '/community/post/$id': typeof CommunityPostIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/achievements': typeof AchievementsRoute
+  '/admin': typeof AdminRoute
+  '/billing': typeof BillingRoute
   '/checkin': typeof CheckinRoute
   '/companion': typeof CompanionRoute
-  '/consent': typeof ConsentRoute
+  '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/data': typeof DataRoute
   '/directory': typeof DirectoryRoute
+  '/family': typeof FamilyRoute
+  '/forgot': typeof ForgotRoute
   '/garden': typeof GardenRoute
   '/grounding': typeof GroundingRoute
   '/home': typeof HomeRoute
+  '/insights': typeof InsightsRoute
   '/journal': typeof JournalRoute
+  '/kid': typeof KidRoute
+  '/leaderboard': typeof LeaderboardRoute
+  '/login': typeof LoginRoute
   '/modes': typeof ModesRoute
+  '/notifications': typeof NotificationsRoute
   '/portal': typeof PortalRoute
+  '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
+  '/recovery': typeof RecoveryRoute
+  '/reset': typeof ResetRoute
   '/resources': typeof ResourcesRoute
+  '/signup': typeof SignupRoute
   '/therapist': typeof TherapistRoute
   '/tools': typeof ToolsRoute
+  '/verify': typeof VerifyRoute
   '/weather': typeof WeatherRoute
+  '/welcome': typeof WelcomeRoute
   '/api/companion': typeof ApiCompanionRoute
   '/api/companion-observe': typeof ApiCompanionObserveRoute
   '/api/transcribe': typeof ApiTranscribeRoute
+  '/blog/$id': typeof BlogIdRoute
+  '/blog/write': typeof BlogWriteRoute
+  '/checkout/sandbox': typeof CheckoutSandboxRoute
+  '/community/communities': typeof CommunityCommunitiesRoute
+  '/community/guidelines': typeof CommunityGuidelinesRoute
+  '/games/$id': typeof GamesIdRoute
+  '/messages/$id': typeof MessagesIdRoute
+  '/settings/blocked': typeof SettingsBlockedRoute
+  '/u/$handle': typeof UHandleRoute
+  '/blog': typeof BlogIndexRoute
+  '/community': typeof CommunityIndexRoute
+  '/games': typeof GamesIndexRoute
+  '/messages': typeof MessagesIndexRoute
+  '/settings': typeof SettingsIndexRoute
   '/api/v1/$': typeof ApiV1SplatRoute
+  '/community/c/$slug': typeof CommunityCSlugRoute
+  '/community/post/$id': typeof CommunityPostIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/achievements': typeof AchievementsRoute
+  '/admin': typeof AdminRoute
+  '/billing': typeof BillingRoute
   '/checkin': typeof CheckinRoute
   '/companion': typeof CompanionRoute
-  '/consent': typeof ConsentRoute
+  '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/data': typeof DataRoute
   '/directory': typeof DirectoryRoute
+  '/family': typeof FamilyRoute
+  '/forgot': typeof ForgotRoute
   '/garden': typeof GardenRoute
   '/grounding': typeof GroundingRoute
   '/home': typeof HomeRoute
+  '/insights': typeof InsightsRoute
   '/journal': typeof JournalRoute
+  '/kid': typeof KidRoute
+  '/leaderboard': typeof LeaderboardRoute
+  '/login': typeof LoginRoute
   '/modes': typeof ModesRoute
+  '/notifications': typeof NotificationsRoute
   '/portal': typeof PortalRoute
+  '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
+  '/recovery': typeof RecoveryRoute
+  '/reset': typeof ResetRoute
   '/resources': typeof ResourcesRoute
+  '/signup': typeof SignupRoute
   '/therapist': typeof TherapistRoute
   '/tools': typeof ToolsRoute
+  '/verify': typeof VerifyRoute
   '/weather': typeof WeatherRoute
+  '/welcome': typeof WelcomeRoute
   '/api/companion': typeof ApiCompanionRoute
   '/api/companion-observe': typeof ApiCompanionObserveRoute
   '/api/transcribe': typeof ApiTranscribeRoute
+  '/blog/$id': typeof BlogIdRoute
+  '/blog/write': typeof BlogWriteRoute
+  '/checkout/sandbox': typeof CheckoutSandboxRoute
+  '/community/communities': typeof CommunityCommunitiesRoute
+  '/community/guidelines': typeof CommunityGuidelinesRoute
+  '/games/$id': typeof GamesIdRoute
+  '/messages/$id': typeof MessagesIdRoute
+  '/settings/blocked': typeof SettingsBlockedRoute
+  '/u/$handle': typeof UHandleRoute
+  '/blog/': typeof BlogIndexRoute
+  '/community/': typeof CommunityIndexRoute
+  '/games/': typeof GamesIndexRoute
+  '/messages/': typeof MessagesIndexRoute
+  '/settings/': typeof SettingsIndexRoute
   '/api/v1/$': typeof ApiV1SplatRoute
+  '/community/c/$slug': typeof CommunityCSlugRoute
+  '/community/post/$id': typeof CommunityPostIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/about'
+    | '/achievements'
+    | '/admin'
+    | '/billing'
     | '/checkin'
     | '/companion'
-    | '/consent'
+    | '/contact'
     | '/dashboard'
     | '/data'
     | '/directory'
+    | '/family'
+    | '/forgot'
     | '/garden'
     | '/grounding'
     | '/home'
+    | '/insights'
     | '/journal'
+    | '/kid'
+    | '/leaderboard'
+    | '/login'
     | '/modes'
+    | '/notifications'
     | '/portal'
+    | '/pricing'
+    | '/privacy'
     | '/profile'
+    | '/recovery'
+    | '/reset'
     | '/resources'
+    | '/signup'
     | '/therapist'
     | '/tools'
+    | '/verify'
     | '/weather'
+    | '/welcome'
     | '/api/companion'
     | '/api/companion-observe'
     | '/api/transcribe'
+    | '/blog/$id'
+    | '/blog/write'
+    | '/checkout/sandbox'
+    | '/community/communities'
+    | '/community/guidelines'
+    | '/games/$id'
+    | '/messages/$id'
+    | '/settings/blocked'
+    | '/u/$handle'
+    | '/blog/'
+    | '/community/'
+    | '/games/'
+    | '/messages/'
+    | '/settings/'
     | '/api/v1/$'
+    | '/community/c/$slug'
+    | '/community/post/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/about'
+    | '/achievements'
+    | '/admin'
+    | '/billing'
     | '/checkin'
     | '/companion'
-    | '/consent'
+    | '/contact'
     | '/dashboard'
     | '/data'
     | '/directory'
+    | '/family'
+    | '/forgot'
     | '/garden'
     | '/grounding'
     | '/home'
+    | '/insights'
     | '/journal'
+    | '/kid'
+    | '/leaderboard'
+    | '/login'
     | '/modes'
+    | '/notifications'
     | '/portal'
+    | '/pricing'
+    | '/privacy'
     | '/profile'
+    | '/recovery'
+    | '/reset'
     | '/resources'
+    | '/signup'
     | '/therapist'
     | '/tools'
+    | '/verify'
     | '/weather'
+    | '/welcome'
     | '/api/companion'
     | '/api/companion-observe'
     | '/api/transcribe'
+    | '/blog/$id'
+    | '/blog/write'
+    | '/checkout/sandbox'
+    | '/community/communities'
+    | '/community/guidelines'
+    | '/games/$id'
+    | '/messages/$id'
+    | '/settings/blocked'
+    | '/u/$handle'
+    | '/blog'
+    | '/community'
+    | '/games'
+    | '/messages'
+    | '/settings'
     | '/api/v1/$'
+    | '/community/c/$slug'
+    | '/community/post/$id'
   id:
     | '__root__'
     | '/'
+    | '/about'
+    | '/achievements'
+    | '/admin'
+    | '/billing'
     | '/checkin'
     | '/companion'
-    | '/consent'
+    | '/contact'
     | '/dashboard'
     | '/data'
     | '/directory'
+    | '/family'
+    | '/forgot'
     | '/garden'
     | '/grounding'
     | '/home'
+    | '/insights'
     | '/journal'
+    | '/kid'
+    | '/leaderboard'
+    | '/login'
     | '/modes'
+    | '/notifications'
     | '/portal'
+    | '/pricing'
+    | '/privacy'
     | '/profile'
+    | '/recovery'
+    | '/reset'
     | '/resources'
+    | '/signup'
     | '/therapist'
     | '/tools'
+    | '/verify'
     | '/weather'
+    | '/welcome'
     | '/api/companion'
     | '/api/companion-observe'
     | '/api/transcribe'
+    | '/blog/$id'
+    | '/blog/write'
+    | '/checkout/sandbox'
+    | '/community/communities'
+    | '/community/guidelines'
+    | '/games/$id'
+    | '/messages/$id'
+    | '/settings/blocked'
+    | '/u/$handle'
+    | '/blog/'
+    | '/community/'
+    | '/games/'
+    | '/messages/'
+    | '/settings/'
     | '/api/v1/$'
+    | '/community/c/$slug'
+    | '/community/post/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
+  AchievementsRoute: typeof AchievementsRoute
+  AdminRoute: typeof AdminRoute
+  BillingRoute: typeof BillingRoute
   CheckinRoute: typeof CheckinRoute
   CompanionRoute: typeof CompanionRoute
-  ConsentRoute: typeof ConsentRoute
+  ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRoute
   DataRoute: typeof DataRoute
   DirectoryRoute: typeof DirectoryRoute
+  FamilyRoute: typeof FamilyRoute
+  ForgotRoute: typeof ForgotRoute
   GardenRoute: typeof GardenRoute
   GroundingRoute: typeof GroundingRoute
   HomeRoute: typeof HomeRoute
+  InsightsRoute: typeof InsightsRoute
   JournalRoute: typeof JournalRoute
+  KidRoute: typeof KidRoute
+  LeaderboardRoute: typeof LeaderboardRoute
+  LoginRoute: typeof LoginRoute
   ModesRoute: typeof ModesRoute
+  NotificationsRoute: typeof NotificationsRoute
   PortalRoute: typeof PortalRoute
+  PricingRoute: typeof PricingRoute
+  PrivacyRoute: typeof PrivacyRoute
   ProfileRoute: typeof ProfileRoute
+  RecoveryRoute: typeof RecoveryRoute
+  ResetRoute: typeof ResetRoute
   ResourcesRoute: typeof ResourcesRoute
+  SignupRoute: typeof SignupRoute
   TherapistRoute: typeof TherapistRoute
   ToolsRoute: typeof ToolsRoute
+  VerifyRoute: typeof VerifyRoute
   WeatherRoute: typeof WeatherRoute
+  WelcomeRoute: typeof WelcomeRoute
   ApiCompanionRoute: typeof ApiCompanionRoute
   ApiCompanionObserveRoute: typeof ApiCompanionObserveRoute
   ApiTranscribeRoute: typeof ApiTranscribeRoute
+  BlogIdRoute: typeof BlogIdRoute
+  BlogWriteRoute: typeof BlogWriteRoute
+  CheckoutSandboxRoute: typeof CheckoutSandboxRoute
+  CommunityCommunitiesRoute: typeof CommunityCommunitiesRoute
+  CommunityGuidelinesRoute: typeof CommunityGuidelinesRoute
+  GamesIdRoute: typeof GamesIdRoute
+  MessagesIdRoute: typeof MessagesIdRoute
+  SettingsBlockedRoute: typeof SettingsBlockedRoute
+  UHandleRoute: typeof UHandleRoute
+  BlogIndexRoute: typeof BlogIndexRoute
+  CommunityIndexRoute: typeof CommunityIndexRoute
+  GamesIndexRoute: typeof GamesIndexRoute
+  MessagesIndexRoute: typeof MessagesIndexRoute
+  SettingsIndexRoute: typeof SettingsIndexRoute
   ApiV1SplatRoute: typeof ApiV1SplatRoute
+  CommunityCSlugRoute: typeof CommunityCSlugRoute
+  CommunityPostIdRoute: typeof CommunityPostIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -323,6 +765,34 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/achievements': {
+      id: '/achievements'
+      path: '/achievements'
+      fullPath: '/achievements'
+      preLoaderRoute: typeof AchievementsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/billing': {
+      id: '/billing'
+      path: '/billing'
+      fullPath: '/billing'
+      preLoaderRoute: typeof BillingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/checkin': {
@@ -339,11 +809,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CompanionRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/consent': {
-      id: '/consent'
-      path: '/consent'
-      fullPath: '/consent'
-      preLoaderRoute: typeof ConsentRouteImport
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -367,6 +837,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DirectoryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/family': {
+      id: '/family'
+      path: '/family'
+      fullPath: '/family'
+      preLoaderRoute: typeof FamilyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot': {
+      id: '/forgot'
+      path: '/forgot'
+      fullPath: '/forgot'
+      preLoaderRoute: typeof ForgotRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/garden': {
       id: '/garden'
       path: '/garden'
@@ -388,11 +872,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/insights': {
+      id: '/insights'
+      path: '/insights'
+      fullPath: '/insights'
+      preLoaderRoute: typeof InsightsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/journal': {
       id: '/journal'
       path: '/journal'
       fullPath: '/journal'
       preLoaderRoute: typeof JournalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/kid': {
+      id: '/kid'
+      path: '/kid'
+      fullPath: '/kid'
+      preLoaderRoute: typeof KidRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/leaderboard': {
+      id: '/leaderboard'
+      path: '/leaderboard'
+      fullPath: '/leaderboard'
+      preLoaderRoute: typeof LeaderboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/modes': {
@@ -402,11 +914,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ModesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/notifications': {
+      id: '/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof NotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/portal': {
       id: '/portal'
       path: '/portal'
       fullPath: '/portal'
       preLoaderRoute: typeof PortalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile': {
@@ -416,11 +949,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/recovery': {
+      id: '/recovery'
+      path: '/recovery'
+      fullPath: '/recovery'
+      preLoaderRoute: typeof RecoveryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset': {
+      id: '/reset'
+      path: '/reset'
+      fullPath: '/reset'
+      preLoaderRoute: typeof ResetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/resources': {
       id: '/resources'
       path: '/resources'
       fullPath: '/resources'
       preLoaderRoute: typeof ResourcesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/therapist': {
@@ -437,11 +991,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ToolsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/verify': {
+      id: '/verify'
+      path: '/verify'
+      fullPath: '/verify'
+      preLoaderRoute: typeof VerifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/weather': {
       id: '/weather'
       path: '/weather'
       fullPath: '/weather'
       preLoaderRoute: typeof WeatherRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/welcome': {
+      id: '/welcome'
+      path: '/welcome'
+      fullPath: '/welcome'
+      preLoaderRoute: typeof WelcomeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/companion': {
@@ -465,6 +1033,104 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiTranscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blog/': {
+      id: '/blog/'
+      path: '/blog'
+      fullPath: '/blog/'
+      preLoaderRoute: typeof BlogIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/$id': {
+      id: '/blog/$id'
+      path: '/blog/$id'
+      fullPath: '/blog/$id'
+      preLoaderRoute: typeof BlogIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/write': {
+      id: '/blog/write'
+      path: '/blog/write'
+      fullPath: '/blog/write'
+      preLoaderRoute: typeof BlogWriteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkout/sandbox': {
+      id: '/checkout/sandbox'
+      path: '/checkout/sandbox'
+      fullPath: '/checkout/sandbox'
+      preLoaderRoute: typeof CheckoutSandboxRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/community/': {
+      id: '/community/'
+      path: '/community'
+      fullPath: '/community/'
+      preLoaderRoute: typeof CommunityIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/community/communities': {
+      id: '/community/communities'
+      path: '/community/communities'
+      fullPath: '/community/communities'
+      preLoaderRoute: typeof CommunityCommunitiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/community/guidelines': {
+      id: '/community/guidelines'
+      path: '/community/guidelines'
+      fullPath: '/community/guidelines'
+      preLoaderRoute: typeof CommunityGuidelinesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/games/': {
+      id: '/games/'
+      path: '/games'
+      fullPath: '/games/'
+      preLoaderRoute: typeof GamesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/games/$id': {
+      id: '/games/$id'
+      path: '/games/$id'
+      fullPath: '/games/$id'
+      preLoaderRoute: typeof GamesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/messages/': {
+      id: '/messages/'
+      path: '/messages'
+      fullPath: '/messages/'
+      preLoaderRoute: typeof MessagesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/messages/$id': {
+      id: '/messages/$id'
+      path: '/messages/$id'
+      fullPath: '/messages/$id'
+      preLoaderRoute: typeof MessagesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings/': {
+      id: '/settings/'
+      path: '/settings'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof SettingsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings/blocked': {
+      id: '/settings/blocked'
+      path: '/settings/blocked'
+      fullPath: '/settings/blocked'
+      preLoaderRoute: typeof SettingsBlockedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/u/$handle': {
+      id: '/u/$handle'
+      path: '/u/$handle'
+      fullPath: '/u/$handle'
+      preLoaderRoute: typeof UHandleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/v1/$': {
       id: '/api/v1/$'
       path: '/api/v1/$'
@@ -472,32 +1138,80 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1SplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/community/c/$slug': {
+      id: '/community/c/$slug'
+      path: '/community/c/$slug'
+      fullPath: '/community/c/$slug'
+      preLoaderRoute: typeof CommunityCSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/community/post/$id': {
+      id: '/community/post/$id'
+      path: '/community/post/$id'
+      fullPath: '/community/post/$id'
+      preLoaderRoute: typeof CommunityPostIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
+  AchievementsRoute: AchievementsRoute,
+  AdminRoute: AdminRoute,
+  BillingRoute: BillingRoute,
   CheckinRoute: CheckinRoute,
   CompanionRoute: CompanionRoute,
-  ConsentRoute: ConsentRoute,
+  ContactRoute: ContactRoute,
   DashboardRoute: DashboardRoute,
   DataRoute: DataRoute,
   DirectoryRoute: DirectoryRoute,
+  FamilyRoute: FamilyRoute,
+  ForgotRoute: ForgotRoute,
   GardenRoute: GardenRoute,
   GroundingRoute: GroundingRoute,
   HomeRoute: HomeRoute,
+  InsightsRoute: InsightsRoute,
   JournalRoute: JournalRoute,
+  KidRoute: KidRoute,
+  LeaderboardRoute: LeaderboardRoute,
+  LoginRoute: LoginRoute,
   ModesRoute: ModesRoute,
+  NotificationsRoute: NotificationsRoute,
   PortalRoute: PortalRoute,
+  PricingRoute: PricingRoute,
+  PrivacyRoute: PrivacyRoute,
   ProfileRoute: ProfileRoute,
+  RecoveryRoute: RecoveryRoute,
+  ResetRoute: ResetRoute,
   ResourcesRoute: ResourcesRoute,
+  SignupRoute: SignupRoute,
   TherapistRoute: TherapistRoute,
   ToolsRoute: ToolsRoute,
+  VerifyRoute: VerifyRoute,
   WeatherRoute: WeatherRoute,
+  WelcomeRoute: WelcomeRoute,
   ApiCompanionRoute: ApiCompanionRoute,
   ApiCompanionObserveRoute: ApiCompanionObserveRoute,
   ApiTranscribeRoute: ApiTranscribeRoute,
+  BlogIdRoute: BlogIdRoute,
+  BlogWriteRoute: BlogWriteRoute,
+  CheckoutSandboxRoute: CheckoutSandboxRoute,
+  CommunityCommunitiesRoute: CommunityCommunitiesRoute,
+  CommunityGuidelinesRoute: CommunityGuidelinesRoute,
+  GamesIdRoute: GamesIdRoute,
+  MessagesIdRoute: MessagesIdRoute,
+  SettingsBlockedRoute: SettingsBlockedRoute,
+  UHandleRoute: UHandleRoute,
+  BlogIndexRoute: BlogIndexRoute,
+  CommunityIndexRoute: CommunityIndexRoute,
+  GamesIndexRoute: GamesIndexRoute,
+  MessagesIndexRoute: MessagesIndexRoute,
+  SettingsIndexRoute: SettingsIndexRoute,
   ApiV1SplatRoute: ApiV1SplatRoute,
+  CommunityCSlugRoute: CommunityCSlugRoute,
+  CommunityPostIdRoute: CommunityPostIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,10 +1,21 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { LoadingCards } from "@/components/kit";
+import { TodayPanel } from "@/components/today-panel";
+import { api } from "@/lib/api";
+import { useSession } from "@/lib/session";
 import { AppShell, CalmToggle, Chip, PillButton, ScreeningNote } from "@/components/app-shell";
 import { Companion } from "@/components/companion-character";
 import { PipIntro } from "@/components/pip-intro";
 
-import { CornerBotanicals, StarryBed, WeatherIcon, skyMeta, skyScale } from "@/components/illustrations";
+import {
+  CornerBotanicals,
+  StarryBed,
+  WeatherIcon,
+  skyMeta,
+  skyScale,
+} from "@/components/illustrations";
 import { moodTags } from "@/lib/content";
 import { consistencyNote } from "@/lib/insights";
 import { useApp, today, type Sky } from "@/lib/app-state";
@@ -15,10 +26,14 @@ export const Route = createFileRoute("/home")({
       { title: "Today — Pause." },
       {
         name: "description",
-        content: "Your emotional weather for the week, plus the deeper check-in when a pattern needs more detail.",
+        content:
+          "Your emotional weather for the week, plus the deeper check-in when a pattern needs more detail.",
       },
       { property: "og:title", content: "Today — Pause." },
-      { property: "og:description", content: "A weekly mood calendar in weather icons, and gentle next steps." },
+      {
+        property: "og:description",
+        content: "A weekly mood calendar in weather icons, and gentle next steps.",
+      },
     ],
   }),
   component: HomeScreen,
@@ -34,15 +49,18 @@ function lastDays(n: number) {
 
 function HomeScreen() {
   const { state, ready, setMood } = useApp();
+  const { user } = useSession();
   const navigate = useNavigate();
   const [tags, setTags] = useState<string[]>([]);
   const child = state.band === "child";
 
-  useEffect(() => {
-    if (ready && (!state.band || !state.consented)) navigate({ to: "/" });
-  }, [ready, state.band, state.consented, navigate]);
-
-  if (!ready || !state.band) return null;
+  if (!ready || !state.band) {
+    return (
+      <AppShell title="Today">
+        <LoadingCards n={4} />
+      </AppShell>
+    );
+  }
 
   const todays = state.moods.find((m) => m.date === today());
   const consistency = consistencyNote(state);
@@ -57,11 +75,14 @@ function HomeScreen() {
         <div>
           <p className="font-display text-lg font-bold text-forest">Pause.</p>
           <h2 className="font-display text-4xl font-black tracking-tight">
-            Hey {state.name || "there"}!
+            {greeting()}, {state.name || "there"}!
           </h2>
         </div>
         <CalmToggle />
       </div>
+
+      <TodayPanel />
+      {user?.ageGroup === "adult" && <AdultHighlights />}
 
       <Link to="/companion" className="mt-6 block" data-tour="pip">
         <section className="card-soft flex items-center gap-4 p-5">
@@ -79,8 +100,7 @@ function HomeScreen() {
         </section>
       </Link>
 
-
-      <section className="card-soft mt-6 p-6" data-tour="mood">
+      <section id="mood" className="card-soft mt-6 scroll-mt-20 p-6" data-tour="mood">
         <h3 className="font-display text-2xl font-bold">
           {child ? "How does it feel today?" : "What's your sky today?"}
         </h3>
@@ -102,7 +122,10 @@ function HomeScreen() {
                   active ? "border-ink bg-primary" : "border-border bg-muted"
                 } ${child ? "py-6" : ""}`}
               >
-                <WeatherIcon sky={sky} className={child ? "size-16 text-ink" : "size-10 text-ink"} />
+                <WeatherIcon
+                  sky={sky}
+                  className={child ? "size-16 text-ink" : "size-10 text-ink"}
+                />
                 <span className={`text-center font-bold ${child ? "text-base" : "text-xs"}`}>
                   {child ? skyMeta[sky].kidLabel : skyMeta[sky].label}
                 </span>
@@ -181,7 +204,11 @@ function HomeScreen() {
               : "A few more questions, when a pattern needs detail."}
           </p>
         </Link>
-        <Link to="/dashboard" className="card-soft block p-5 hover:shadow-lift" data-tour="patterns">
+        <Link
+          to="/dashboard"
+          className="card-soft block p-5 hover:shadow-lift"
+          data-tour="patterns"
+        >
           <p className="font-display text-xl font-bold">Your patterns</p>
           <p className="mt-1 text-sm text-muted-foreground">
             Plain-language trends from what you've logged.
@@ -207,7 +234,10 @@ function HomeScreen() {
         </Link>
       </div>
 
-      <Link to="/directory" className="card-soft mt-4 flex items-center gap-4 p-5 hover:shadow-lift">
+      <Link
+        to="/directory"
+        className="card-soft mt-4 flex items-center gap-4 p-5 hover:shadow-lift"
+      >
         <StarryBed className="size-20 shrink-0 text-forest" />
         <span>
           <span className="block font-display text-xl font-bold">Therapist directory</span>
@@ -225,5 +255,40 @@ function HomeScreen() {
         </PillButton>
       </div>
     </AppShell>
+  );
+}
+
+function greeting() {
+  const h = new Date().getHours();
+  return h < 5 ? "Still up" : h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
+}
+
+/** Adults: a gentle peek into the community and recovery tools. */
+function AdultHighlights() {
+  const feed = useQuery({
+    queryKey: ["feed", "trending", "home"],
+    queryFn: () => api("/community/feed?tab=trending"),
+  });
+  const prompt: string | undefined = feed.data?.prompt;
+  return (
+    <div className="mt-4 grid gap-4 sm:grid-cols-2">
+      <Link
+        to="/community"
+        className="lift block rounded-3xl border-2 border-ink bg-lavender/70 p-5"
+      >
+        <p className="text-sm font-black text-forest uppercase">Today's community prompt</p>
+        <p className="mt-1 font-display text-xl font-bold">
+          {prompt ?? "Share something small that helped this week."}
+        </p>
+        <p className="mt-2 text-sm text-muted-foreground">You'll post under your anonymous name.</p>
+      </Link>
+      <Link to="/recovery" className="lift block rounded-3xl border-2 border-ink bg-primary/70 p-5">
+        <p className="text-sm font-black text-forest uppercase">Recovery</p>
+        <p className="mt-1 font-display text-xl font-bold">Your milestones, kept private</p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Track days, note what's helping, share a milestone if you want to.
+        </p>
+      </Link>
+    </div>
   );
 }

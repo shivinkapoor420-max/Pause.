@@ -31,7 +31,8 @@ export const Route = createFileRoute("/directory")({
       { property: "og:title", content: "Therapist directory — Pause." },
       {
         property: "og:description",
-        content: "Filter real listed therapists by what you're dealing with, who they see, and what they cost.",
+        content:
+          "Filter real listed therapists by what you're dealing with, who they see, and what they cost.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -43,7 +44,11 @@ export const Route = createFileRoute("/directory")({
 const costBands = [
   { id: "any", label: "Any cost", test: () => true },
   { id: "under120", label: "Under $120", test: (c: number | null) => c !== null && c < 120 },
-  { id: "120-180", label: "$120–180", test: (c: number | null) => c !== null && c >= 120 && c <= 180 },
+  {
+    id: "120-180",
+    label: "$120–180",
+    test: (c: number | null) => c !== null && c >= 120 && c <= 180,
+  },
   { id: "over180", label: "Over $180", test: (c: number | null) => c !== null && c > 180 },
 ] as const;
 
@@ -109,9 +114,7 @@ function Card({ t }: { t: Therapist }) {
             </li>
           ))}
           {t.issues.length > 8 && (
-            <li className="px-1 py-1 text-xs text-muted-foreground">
-              +{t.issues.length - 8} more
-            </li>
+            <li className="px-1 py-1 text-xs text-muted-foreground">+{t.issues.length - 8} more</li>
           )}
         </ul>
       )}
@@ -194,10 +197,7 @@ function Directory() {
   const band = state.band ?? "adult";
   const patterns = buildPatterns(state);
 
-  const suggested = useMemo(
-    () => issuesForPatterns(patterns.map((p) => p.label)),
-    [patterns],
-  );
+  const suggested = useMemo(() => issuesForPatterns(patterns.map((p) => p.label)), [patterns]);
 
   const [tier, setTier] = useState<"general" | "partner">("general");
   const [issues, setIssues] = useState<string[]>(issueParam ? [issueParam] : []);
@@ -288,8 +288,8 @@ function Directory() {
         ) : (
           <>
             <strong>Partner network.</strong> Therapists who joined Pause. directly and agreed to
-            receive briefs. This is the only tier where your reviewed brief can be sent with one tap.
-            It's small on purpose and grows as more clinicians opt in.
+            receive briefs. This is the only tier where your reviewed brief can be sent with one
+            tap. It's small on purpose and grows as more clinicians opt in.
           </>
         )}
       </p>
@@ -404,9 +404,9 @@ function Directory() {
       <div className="mt-6 space-y-3">
         <ScreeningNote />
         <p className="text-xs text-muted-foreground">
-          General-directory listings come from publicly available professional profiles and are shown
-          for reference only. Pause. has no affiliation with them, and nothing about you is shared
-          with anyone in this tier.
+          General-directory listings come from publicly available professional profiles and are
+          shown for reference only. Pause. has no affiliation with them, and nothing about you is
+          shared with anyone in this tier.
         </p>
       </div>
     </AppShell>

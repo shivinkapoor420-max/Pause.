@@ -29,7 +29,11 @@ export const usernameSchema = z
 export const passwordSchema = z.string().min(8, "Use at least 8 characters").max(200);
 const birthSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD");
 
-async function issueEmailToken(userId: string, kind: "verify_email" | "reset_password", hours: number) {
+async function issueEmailToken(
+  userId: string,
+  kind: "verify_email" | "reset_password",
+  hours: number,
+) {
   const sql = await db();
   const token = randomToken();
   await sql`insert into auth_tokens (user_id, kind, token_hash, expires_at)
@@ -71,13 +75,22 @@ route("POST", "/auth/signup", async ({ request }) => {
   }
   const sql = await db();
   const email = input.email.toLowerCase();
-  const taken = await sql`select email, lower(username) as u from users where email = ${email} or lower(username) = ${input.username.toLowerCase()}`;
-  if (taken.some((t) => t["email"] === email)) throw bad("An account with this email already exists. Try signing in.", "email_taken");
+  const taken =
+    await sql`select email, lower(username) as u from users where email = ${email} or lower(username) = ${input.username.toLowerCase()}`;
+  if (taken.some((t) => t["email"] === email))
+    throw bad("An account with this email already exists. Try signing in.", "email_taken");
   if (taken.length) throw bad("That username is taken — try another.", "username_taken");
 
   let alias = generateAlias();
-  for (let i = 0; i < 5 && (await sql`select 1 from users where community_alias = ${alias}`).length; i++) alias = generateAlias();
-  const [user] = await sql<UserRow[]>`insert into users (email, username, community_alias, password_hash, display_name, birth_date, age_group, consented_at, prefs)
+  for (
+    let i = 0;
+    i < 5 && (await sql`select 1 from users where community_alias = ${alias}`).length;
+    i++
+  )
+    alias = generateAlias();
+  const [user] = await sql<
+    UserRow[]
+  >`insert into users (email, username, community_alias, password_hash, display_name, birth_date, age_group, consented_at, prefs)
     values (${email}, ${input.username}, ${alias}, ${await hashPassword(input.password)}, ${clean(input.displayName, 60)}, ${input.birthDate}, ${group}, now(),
       ${sql.json({ notifyMessages: true, notifyCommunity: true, notifyAchievements: true, notifyReminders: true, readReceipts: true, showOnline: false, leaderboardOptIn: false } as never)})
     returning *`;
@@ -89,22 +102,37 @@ route("POST", "/auth/signup", async ({ request }) => {
 });
 
 route("POST", "/auth/login", async ({ request }) => {
-  const input = await body(request, z.object({ login: z.string().min(1).max(200), password: z.string().min(1).max(200) }));
+  const input = await body(
+    request,
+    z.object({ login: z.string().min(1).max(200), password: z.string().min(1).max(200) }),
+  );
   const ip = clientIp(request);
   rateLimit(`login:${ip}`, 20, 15 * 60 * 1000);
   rateLimit(`login:${input.login.toLowerCase()}`, 8, 15 * 60 * 1000);
   const sql = await db();
   const login = input.login.toLowerCase();
-  const rows = await sql<UserRow[]>`select * from users where (email = ${login} or lower(username) = ${login}) and status <> 'deleted'`;
+  const rows = await sql<
+    UserRow[]
+  >`select * from users where (email = ${login} or lower(username) = ${login}) and status <> 'deleted'`;
   const user = rows[0];
-  const ok = user ? await verifyPassword(input.password, user.password_hash) : await verifyPassword(input.password, null);
+  const ok = user
+    ? await verifyPassword(input.password, user.password_hash)
+    : await verifyPassword(input.password, null);
   if (!user || !ok) throw unauthorized("That email/username and password don't match.");
-  if (user.status === "suspended") throw forbidden("This account is suspended. Contact us if you think this is a mistake.", "suspended");
-  if (user.age_group === "early") throw forbidden("Little ones use Pause from their grown-up's account.", "guardian_required");
+  if (user.status === "suspended")
+    throw forbidden(
+      "This account is suspended. Contact us if you think this is a mistake.",
+      "suspended",
+    );
+  if (user.age_group === "early")
+    throw forbidden("Little ones use Pause from their grown-up's account.", "guardian_required");
   const s = await createSession(user.id, request);
   await sql`update users set last_seen_at = now() where id = ${user.id}`;
   if (user.role === "admin") await audit(user.id, "admin.login", "", {}, ip);
-  return json({ user: selfView(user, { premium: await isPremium(user) }) }, { headers: { "set-cookie": s.cookie } });
+  return json(
+    { user: selfView(user, { premium: await isPremium(user) }) },
+    { headers: { "set-cookie": s.cookie } },
+  );
 });
 
 route("POST", "/auth/logout", async ({ request }) => {
@@ -125,7 +153,8 @@ route("GET", "/auth/me", async ({ request }) => {
     (select count(*) from conversation_members cm join conversations c on c.id = cm.conversation_id
        where cm.user_id = ${auth.user.id} and cm.status <> 'left' and c.last_message_at > cm.last_read_at)::int as messages`;
   let guardianControls: Record<string, unknown> = {};
-  if (auth.user.guardian_id) guardianControls = (auth.user.prefs["controls"] as Record<string, unknown>) ?? {};
+  if (auth.user.guardian_id)
+    guardianControls = (auth.user.prefs["controls"] as Record<string, unknown>) ?? {};
   return {
     user: selfView(auth.user, { childMode: auth.childMode, premium: await isPremium(auth.user) }),
     unread: counts,
@@ -136,9 +165,11 @@ route("GET", "/auth/me", async ({ request }) => {
 route("POST", "/auth/verify-email", async ({ request }) => {
   const { token } = await body(request, z.object({ token: z.string().min(10).max(200) }));
   const sql = await db();
-  const rows = await sql`update auth_tokens set used_at = now() where token_hash = ${sha256(token)} and kind = 'verify_email'
+  const rows =
+    await sql`update auth_tokens set used_at = now() where token_hash = ${sha256(token)} and kind = 'verify_email'
     and used_at is null and expires_at > now() returning user_id`;
-  if (!rows[0]) throw bad("This link has expired or was already used. Request a new one from Settings.");
+  if (!rows[0])
+    throw bad("This link has expired or was already used. Request a new one from Settings.");
   await sql`update users set email_verified_at = now() where id = ${rows[0]["user_id"]}`;
   return { ok: true };
 });
@@ -155,7 +186,9 @@ route("POST", "/auth/forgot", async ({ request }) => {
   const { email } = await body(request, z.object({ email: z.string().email() }));
   rateLimit(`forgot:${clientIp(request)}`, 5, 60 * 60 * 1000);
   const sql = await db();
-  const rows = await sql<UserRow[]>`select * from users where email = ${email.toLowerCase()} and status = 'active'`;
+  const rows = await sql<
+    UserRow[]
+  >`select * from users where email = ${email.toLowerCase()} and status = 'active'`;
   const user = rows[0];
   if (user) {
     const token = await issueEmailToken(user.id, "reset_password", 1);
@@ -170,26 +203,43 @@ route("POST", "/auth/forgot", async ({ request }) => {
 });
 
 route("POST", "/auth/reset", async ({ request }) => {
-  const input = await body(request, z.object({ token: z.string().min(10).max(200), password: passwordSchema }));
+  const input = await body(
+    request,
+    z.object({ token: z.string().min(10).max(200), password: passwordSchema }),
+  );
   const sql = await db();
-  const rows = await sql`update auth_tokens set used_at = now() where token_hash = ${sha256(input.token)} and kind = 'reset_password'
+  const rows =
+    await sql`update auth_tokens set used_at = now() where token_hash = ${sha256(input.token)} and kind = 'reset_password'
     and used_at is null and expires_at > now() returning user_id`;
   const userId = rows[0]?.["user_id"] as string | undefined;
   if (!userId) throw bad("This reset link has expired or was already used.");
   await sql`update users set password_hash = ${await hashPassword(input.password)} where id = ${userId}`;
   await sql`delete from sessions where user_id = ${userId}`;
-  await notify(userId, "security", "Your password was changed", "If this wasn't you, contact us right away.", "/contact");
+  await notify(
+    userId,
+    "security",
+    "Your password was changed",
+    "If this wasn't you, contact us right away.",
+    "/contact",
+  );
   return { ok: true };
 });
 
 route("POST", "/auth/change-password", async ({ request }) => {
   const auth = await requireUser(request);
   const input = await body(request, z.object({ current: z.string(), password: passwordSchema }));
-  if (!(await verifyPassword(input.current, auth.user.password_hash))) throw bad("Your current password isn't right.");
+  if (!(await verifyPassword(input.current, auth.user.password_hash)))
+    throw bad("Your current password isn't right.");
   const sql = await db();
   await sql`update users set password_hash = ${await hashPassword(input.password)} where id = ${auth.user.id}`;
   await sql`delete from sessions where user_id = ${auth.user.id} and id <> ${auth.sessionId}`;
-  await notify(auth.user.id, "security", "Your password was changed", "Other devices were signed out.", "/settings");
+  await notify(
+    auth.user.id,
+    "security",
+    "Your password was changed",
+    "Other devices were signed out.",
+    "/settings",
+  );
   return { ok: true };
 });
 
@@ -197,9 +247,12 @@ route("POST", "/auth/change-password", async ({ request }) => {
 route("POST", "/auth/child-mode/:childId", async ({ request, params }) => {
   const auth = await requireUser(request);
   if (auth.childMode || auth.user.age_group !== "adult") throw forbidden();
-  if (!auth.user.parent_pin_hash) throw bad("Set a 4-digit parent PIN first, so only you can leave child mode.", "pin_required");
+  if (!auth.user.parent_pin_hash)
+    throw bad("Set a 4-digit parent PIN first, so only you can leave child mode.", "pin_required");
   const sql = await db();
-  const rows = await sql<UserRow[]>`select * from users where id = ${params["childId"]!} and guardian_id = ${auth.user.id} and status = 'active'`;
+  const rows = await sql<
+    UserRow[]
+  >`select * from users where id = ${params["childId"]!} and guardian_id = ${auth.user.id} and status = 'active'`;
   const child = rows[0];
   if (!child) throw forbidden("That profile isn't linked to your account.");
   const parentToken = sessionToken(request)!;
@@ -217,7 +270,8 @@ route("POST", "/auth/exit-child-mode", async ({ request }) => {
   rateLimit(`pin:${auth.parentId}`, 6, 10 * 60 * 1000);
   const sql = await db();
   const rows = await sql<UserRow[]>`select * from users where id = ${auth.parentId}`;
-  if (!rows[0] || !(await verifyPassword(pin, rows[0].parent_pin_hash))) throw bad("That PIN isn't right.", "bad_pin");
+  if (!rows[0] || !(await verifyPassword(pin, rows[0].parent_pin_hash)))
+    throw bad("That PIN isn't right.", "bad_pin");
   const parentToken = sessionToken(request, PARENT_COOKIE);
   await destroySession(sessionToken(request));
   const headers = new Headers();
@@ -237,8 +291,12 @@ route("POST", "/auth/exit-child-mode", async ({ request }) => {
 route("POST", "/auth/parent-pin", async ({ request }) => {
   const auth = await requireUser(request);
   if (auth.childMode || auth.user.age_group !== "adult") throw forbidden();
-  const input = await body(request, z.object({ pin: z.string().regex(/^\d{4}$/, "Use 4 digits"), password: z.string() }));
-  if (!(await verifyPassword(input.password, auth.user.password_hash))) throw bad("Your password isn't right.");
+  const input = await body(
+    request,
+    z.object({ pin: z.string().regex(/^\d{4}$/, "Use 4 digits"), password: z.string() }),
+  );
+  if (!(await verifyPassword(input.password, auth.user.password_hash)))
+    throw bad("Your password isn't right.");
   const sql = await db();
   await sql`update users set parent_pin_hash = ${await hashPassword(input.pin)} where id = ${auth.user.id}`;
   return { ok: true };

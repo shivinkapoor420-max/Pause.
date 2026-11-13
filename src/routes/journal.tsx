@@ -12,7 +12,8 @@ export const Route = createFileRoute("/journal")({
       { title: "Journal — Pause." },
       {
         name: "description",
-        content: "Prompted or freeform entries, mood-tagged and gathered into a weekly digest of week-cards.",
+        content:
+          "Prompted or freeform entries, mood-tagged and gathered into a weekly digest of week-cards.",
       },
       { property: "og:title", content: "Journal — Pause." },
       { property: "og:description", content: "Write, speak or draw it — whatever fits the day." },
@@ -118,7 +119,9 @@ function Journal() {
                 variant="coral"
                 className="mt-4"
                 onClick={() =>
-                  setBody(kind === "voice" ? "Voice note recorded with caregiver." : "Drawing saved.")
+                  setBody(
+                    kind === "voice" ? "Voice note recorded with caregiver." : "Drawing saved.",
+                  )
                 }
               >
                 {kind === "voice" ? "Record" : "Open drawing pad"}
@@ -187,7 +190,12 @@ function Journal() {
                           weekday: "short",
                           day: "numeric",
                         })}{" "}
-                        · {e.kind === "text" ? e.prompt : e.kind === "voice" ? "Voice note" : "Drawing"}
+                        ·{" "}
+                        {e.kind === "text"
+                          ? e.prompt
+                          : e.kind === "voice"
+                            ? "Voice note"
+                            : "Drawing"}
                       </span>
                     </div>
                     <p className="mt-1 text-sm font-semibold">{e.body}</p>

@@ -80,7 +80,8 @@ export function readInnerWeather(state: AppState, seed = Date.now()): InnerWeath
 }
 
 function describe(weight: number, spread: number, samples: number): string {
-  if (samples === 0) return "The sky hasn't been read yet — check in and it starts filling itself in.";
+  if (samples === 0)
+    return "The sky hasn't been read yet — check in and it starts filling itself in.";
 
   const base =
     weight < 0.25

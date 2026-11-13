@@ -1,13 +1,7 @@
 import { Check, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { PillButton } from "@/components/app-shell";
-import {
-  defaultRoutine,
-  today,
-  useApp,
-  type RoutineIcon,
-  type RoutineStep,
-} from "@/lib/app-state";
+import { defaultRoutine, today, useApp, type RoutineIcon, type RoutineStep } from "@/lib/app-state";
 import { cn } from "@/lib/utils";
 
 /**
@@ -128,7 +122,13 @@ const icons: Record<RoutineIcon, { label: string; draw: React.ReactNode }> = {
 function StepIcon({ icon, className }: { icon: RoutineIcon; className?: string }) {
   return (
     <svg viewBox="0 0 48 48" className={cn("size-full", className)} aria-hidden="true">
-      <g fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+      <g
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
         {icons[icon].draw}
       </g>
     </svg>
@@ -142,10 +142,7 @@ function Countdown() {
 
   useEffect(() => {
     if (left === null) return;
-    const id = setInterval(
-      () => setLeft((v) => (v === null ? null : Math.max(0, v - 1))),
-      1000,
-    );
+    const id = setInterval(() => setLeft((v) => (v === null ? null : Math.max(0, v - 1))), 1000);
     return () => clearInterval(id);
   }, [left === null]);
 
@@ -155,7 +152,6 @@ function Countdown() {
   };
 
   const share = left === null ? 1 : left / total;
-
 
   return (
     <div className="mt-6 rounded-3xl border-2 border-border bg-muted p-5 text-center">
@@ -175,7 +171,12 @@ function Countdown() {
       </p>
       <div className="mt-4 flex flex-wrap justify-center gap-2">
         {[1, 2, 5, 10].map((m) => (
-          <PillButton key={m} variant="outline" className="px-4 py-2 text-sm" onClick={() => start(m)}>
+          <PillButton
+            key={m}
+            variant="outline"
+            className="px-4 py-2 text-sm"
+            onClick={() => start(m)}
+          >
             {m} min
           </PillButton>
         ))}
@@ -188,7 +189,6 @@ function Countdown() {
     </div>
   );
 }
-
 
 export function VisualRoutine() {
   const { state, setRoutine, toggleRoutineStep } = useApp();
@@ -247,14 +247,19 @@ export function VisualRoutine() {
       {editing && (
         <div className="mt-5 grid gap-3">
           {steps.map((s) => (
-            <div key={s.id} className="flex items-center gap-3 rounded-2xl border-2 border-border bg-muted p-3">
+            <div
+              key={s.id}
+              className="flex items-center gap-3 rounded-2xl border-2 border-border bg-muted p-3"
+            >
               <span className="size-10 shrink-0 text-ink">
                 <StepIcon icon={s.icon} />
               </span>
               <input
                 value={s.label}
                 onChange={(e) =>
-                  setRoutine(steps.map((x) => (x.id === s.id ? { ...x, label: e.target.value } : x)))
+                  setRoutine(
+                    steps.map((x) => (x.id === s.id ? { ...x, label: e.target.value } : x)),
+                  )
                 }
                 className="min-w-0 flex-1 rounded-xl border-2 border-border bg-card px-3 py-2 text-sm font-semibold outline-none focus:border-ink"
               />

@@ -7,4 +7,5 @@ import "./community";
 import "./messages";
 import "./billing";
 import "./admin";
+import "./blog";
 export { dispatch } from "../router";

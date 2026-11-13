@@ -123,7 +123,8 @@ function Profile() {
         <section className="card-soft mt-4 p-6">
           <h3 className="font-display text-2xl font-bold">Caregiver view</h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            Trends for {state.name || "your child"}, ready to share with a pediatrician or therapist.
+            Trends for {state.name || "your child"}, ready to share with a pediatrician or
+            therapist.
           </p>
           <div className="mt-4 grid gap-2">
             {patterns.length === 0 ? (
@@ -182,8 +183,8 @@ function Profile() {
         <section className="card-soft mt-4 p-6">
           <h3 className="font-display text-2xl font-bold">Who can see this</h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            Your journal and your conversations with Pip are private to you, always. The only thing a
-            caregiver can ever see is a trend summary — and only if you invite them.
+            Your journal and your conversations with Pip are private to you, always. The only thing
+            a caregiver can ever see is a trend summary — and only if you invite them.
           </p>
           <div className="mt-4 grid gap-3">
             <Toggle
@@ -209,8 +210,8 @@ function Profile() {
             )}
           </div>
           <p className="mt-3 rounded-2xl bg-mustard/40 p-4 text-sm font-semibold">
-            The one exception, same as we said at the start: if something suggests you're in danger, a
-            caregiver is alerted straight away regardless of these switches.
+            The one exception, same as we said at the start: if something suggests you're in danger,
+            a caregiver is alerted straight away regardless of these switches.
           </p>
         </section>
       )}
@@ -228,7 +229,7 @@ function Profile() {
           <Link to="/modes">
             <PillButton variant="outline">Every mode, explained</PillButton>
           </Link>
-          <Link to="/consent">
+          <Link to="/welcome">
             <PillButton variant="outline">Re-read consent</PillButton>
           </Link>
           <PillButton

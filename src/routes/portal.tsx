@@ -16,7 +16,8 @@ export const Route = createFileRoute("/portal")({
       { property: "og:title", content: "Therapist portal — Pause." },
       {
         property: "og:description",
-        content: "Receive self-report briefs written and reviewed by the client, and confirm they arrived.",
+        content:
+          "Receive self-report briefs written and reviewed by the client, and confirm they arrived.",
       },
     ],
   }),
@@ -67,9 +68,18 @@ function Signup({ onDone }: { onDone: (t: PortalTherapist) => void }) {
       </p>
       <div className="mt-5 grid gap-4">
         {field("name", "Full name", "As it appears on your licence.", { autoComplete: "name" })}
-        {field("email", "Work email", "Where new brief notifications go.", { type: "email", autoComplete: "email" })}
-        {field("license", "Licence number", "Checked against your state board before you're listed.")}
-        {field("licenseState", "Licence state", "Two-letter state code, e.g. CA.", { maxLength: 2 })}
+        {field("email", "Work email", "Where new brief notifications go.", {
+          type: "email",
+          autoComplete: "email",
+        })}
+        {field(
+          "license",
+          "Licence number",
+          "Checked against your state board before you're listed.",
+        )}
+        {field("licenseState", "Licence state", "Two-letter state code, e.g. CA.", {
+          maxLength: 2,
+        })}
         {field("practice", "Practice or clinic", "Optional — shown on your directory card.")}
         <label className="flex items-start justify-between gap-4 rounded-2xl bg-muted p-4">
           <span>
@@ -169,8 +179,8 @@ function Portal() {
                     </p>
                     {confirmed ? (
                       <p className="mt-3 text-sm font-bold text-forest">
-                        Receipt confirmed {new Date(confirmed).toLocaleDateString()} — they've been told it
-                        arrived.
+                        Receipt confirmed {new Date(confirmed).toLocaleDateString()} — they've been
+                        told it arrived.
                       </p>
                     ) : (
                       <PillButton

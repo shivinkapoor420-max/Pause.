@@ -33,10 +33,21 @@ export function aiModel() {
 export function transcriptionConfig() {
   const base = env("AI_BASE_URL");
   if (base && env("AI_TRANSCRIBE_MODEL")) {
-    return { url: `${base.replace(/\/$/, "")}/audio/transcriptions`, key: env("AI_API_KEY"), model: env("AI_TRANSCRIBE_MODEL"), header: "Authorization" };
+    return {
+      url: `${base.replace(/\/$/, "")}/audio/transcriptions`,
+      key: env("AI_API_KEY"),
+      model: env("AI_TRANSCRIBE_MODEL"),
+      header: "Authorization",
+    };
   }
   const lovable = env("LOVABLE_API_KEY");
-  if (lovable) return { url: "https://ai.gateway.lovable.dev/v1/audio/transcriptions", key: lovable, model: "openai/gpt-4o-mini-transcribe", header: "Authorization" };
+  if (lovable)
+    return {
+      url: "https://ai.gateway.lovable.dev/v1/audio/transcriptions",
+      key: lovable,
+      model: "openai/gpt-4o-mini-transcribe",
+      header: "Authorization",
+    };
   return null;
 }
 
@@ -45,8 +56,16 @@ export function transcriptionConfig() {
 // names feelings it hears, reflects specifics back and asks at most one question.
 
 const feelingLexicon: [RegExp, string, string][] = [
-  [/\b(anxious|anxiety|nervous|worried|worry|worrying|panic|panicky|on edge|uneasy)\b/i, "worried", "nervous"],
-  [/\b(stress|stressed|pressure|overwhelm|overwhelmed|too much|swamped|drowning)\b/i, "overwhelmed", "like everything's piling up"],
+  [
+    /\b(anxious|anxiety|nervous|worried|worry|worrying|panic|panicky|on edge|uneasy)\b/i,
+    "worried",
+    "nervous",
+  ],
+  [
+    /\b(stress|stressed|pressure|overwhelm|overwhelmed|too much|swamped|drowning)\b/i,
+    "overwhelmed",
+    "like everything's piling up",
+  ],
   [/\b(sad|down|low|blue|cry|crying|cried|heartbroken|miss|missing|lonely|alone)\b/i, "sad", "sad"],
   [/\b(angry|mad|furious|annoyed|irritated|frustrated|unfair|hate)\b/i, "frustrated", "cross"],
   [/\b(tired|exhausted|drained|burnt out|burned out|no energy|sleepy)\b/i, "worn out", "tired"],
@@ -128,7 +147,10 @@ export function offlineReply(userText: string, previous: string[], child: boolea
       : "I'm really glad you told me. You don't have to hold this alone — the crisis support on your screen can connect you with a real person right now, any time of day.";
   }
   const hit = feelingLexicon.find(([re]) => re.test(userText));
-  const subject = userText.match(subjectRe)?.[0]?.toLowerCase().replace(/\bmy\b/, "your");
+  const subject = userText
+    .match(subjectRe)?.[0]
+    ?.toLowerCase()
+    .replace(/\bmy\b/, "your");
   const about = subject ? ` about ${subject}` : "";
   const About = subject ? `With ${subject} in the middle of it` : "With all of that going on";
   const fill = (t: string) =>
@@ -144,8 +166,10 @@ export function offlineReply(userText: string, previous: string[], child: boolea
     const ask = seed % 2 === 0 ? ` ${pick(childQuestions, used, seed + 1)}` : "";
     return `${first}${ask}`;
   }
-  const first = hit || subject ? fill(pick(adultReflections, used, seed)) : pick(adultNeutral, used, seed);
-  const ask = userText.length > 25 && seed % 3 !== 0 ? ` ${pick(adultQuestions, used, seed + 3)}` : "";
+  const first =
+    hit || subject ? fill(pick(adultReflections, used, seed)) : pick(adultNeutral, used, seed);
+  const ask =
+    userText.length > 25 && seed % 3 !== 0 ? ` ${pick(adultQuestions, used, seed + 3)}` : "";
   return `${first}${ask}`;
 }
 
@@ -167,6 +191,8 @@ export function offlineObservation(text: string) {
     confidence: hit ? 0.35 : 0.15,
     energy: text.length > 160 ? "high" : text.length < 30 ? "low" : "steady",
     engagement: text.length > 60 ? "high" : "steady",
-    note: hit ? `Words like these can carry a ${hit[1]} feeling.` : "Not much to go on — that's okay.",
+    note: hit
+      ? `Words like these can carry a ${hit[1]} feeling.`
+      : "Not much to go on — that's okay.",
   };
 }

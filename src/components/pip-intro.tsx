@@ -41,7 +41,11 @@ export function PipIntro() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center p-5" role="dialog" aria-label="Meet Pip">
+    <div
+      className="fixed inset-0 z-50 grid place-items-center p-5"
+      role="dialog"
+      aria-label="Meet Pip"
+    >
       <div className="absolute inset-0 bg-ink/60" onClick={finish} />
       <div className="card-soft ink-outline relative w-full max-w-sm p-6 text-center">
         <Companion className="mx-auto size-28 text-forest" state="listening" />

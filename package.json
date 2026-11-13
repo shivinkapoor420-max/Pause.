@@ -1,7 +1,11 @@
 {
-  "name": "tanstack_start_ts",
+  "name": "pause",
   "private": true,
-  "sideEffects": false,
+  "sideEffects": [
+    "*.css",
+    "./src/server/api/*.ts",
+    "./src/lib/error-capture.ts"
+  ],
   "type": "module",
   "scripts": {
     "dev": "vite dev",
@@ -9,7 +13,10 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "start": "node .output/server/index.mjs",
+    "test:smoke": "node scripts/smoke-test.mjs",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^3.0.23",

@@ -22,14 +22,17 @@ export const defaultControls = {
 
 async function requireGuardian(request: Request) {
   const auth = await requireUser(request);
-  if (auth.childMode || auth.user.age_group !== "adult") throw forbidden("Only adult accounts can manage family profiles.");
+  if (auth.childMode || auth.user.age_group !== "adult")
+    throw forbidden("Only adult accounts can manage family profiles.");
   return auth;
 }
 
 route("GET", "/family/children", async ({ request }) => {
   const auth = await requireGuardian(request);
   const sql = await db();
-  const kids = await sql<UserRow[]>`select * from users where guardian_id = ${auth.user.id} and status = 'active' order by birth_date desc`;
+  const kids = await sql<
+    UserRow[]
+  >`select * from users where guardian_id = ${auth.user.id} and status = 'active' order by birth_date desc`;
   const out = [];
   for (const k of kids) {
     const teen = k.age_group === "teen";
@@ -43,8 +46,10 @@ route("GET", "/family/children", async ({ request }) => {
     const moods = sharesTrends
       ? await sql`select day, sky from mood_entries where user_id = ${k.id} and day > current_date - 14 order by day`
       : [];
-    const flagged = await sql`select 1 from checkins where user_id = ${k.id} and flagged and created_at > now() - interval '14 days' limit 1`;
-    const loc = await sql`select enabled, lat, lng, accuracy_m, shared_at from location_shares where child_id = ${k.id}`;
+    const flagged =
+      await sql`select 1 from checkins where user_id = ${k.id} and flagged and created_at > now() - interval '14 days' limit 1`;
+    const loc =
+      await sql`select enabled, lat, lng, accuracy_m, shared_at from location_shares where child_id = ${k.id}`;
     out.push({
       id: k.id,
       displayName: k.display_name,
@@ -80,7 +85,8 @@ route("POST", "/family/children", async ({ request }) => {
   if (!group) throw bad("Pause is designed for ages 4 and up.");
   if (group === "adult") throw bad("Adults create their own account.");
   const sql = await db();
-  const count = await sql`select count(*)::int as n from users where guardian_id = ${auth.user.id} and status = 'active'`;
+  const count =
+    await sql`select count(*)::int as n from users where guardian_id = ${auth.user.id} and status = 'active'`;
   if ((count[0]?.["n"] as number) >= 8) throw bad("You can add up to 8 family profiles.");
 
   const ownLogin = group !== "early";
@@ -91,7 +97,9 @@ route("POST", "/family/children", async ({ request }) => {
   const taken = await sql`select 1 from users where lower(username) = ${username.toLowerCase()}`;
   if (taken.length) throw bad("That username is taken — try another.");
 
-  const [child] = await sql<UserRow[]>`insert into users (username, password_hash, display_name, birth_date, age_group, guardian_id, consented_at, profile_visibility, prefs)
+  const [child] = await sql<
+    UserRow[]
+  >`insert into users (username, password_hash, display_name, birth_date, age_group, guardian_id, consented_at, profile_visibility, prefs)
     values (${username}, ${ownLogin && input.password ? await hashPassword(input.password) : null}, ${clean(input.displayName, 40)},
       ${input.birthDate}, ${group}, ${auth.user.id}, now(), 'private',
       ${sql.json({ controls: defaultControls, notifyAchievements: true, notifyReminders: group !== "early" } as never)})
@@ -118,7 +126,11 @@ route("PATCH", "/family/children/:childId", async ({ request, params }) => {
     }),
   );
   const sql = await db();
-  const controls = { ...defaultControls, ...((child.prefs["controls"] as object) ?? {}), ...(input.controls ?? {}) };
+  const controls = {
+    ...defaultControls,
+    ...((child.prefs["controls"] as object) ?? {}),
+    ...(input.controls ?? {}),
+  };
   await sql`update users set
     display_name = ${input.displayName ? clean(input.displayName, 40) : child.display_name},
     prefs = prefs || ${sql.json({ controls } as never)},
@@ -154,12 +166,26 @@ route("POST", "/family/children/:childId/location", async ({ request, params }) 
 route("POST", "/location", async ({ request }) => {
   const auth = await requireUser(request);
   if (!auth.user.guardian_id || auth.user.age_group === "teen") throw forbidden();
-  const input = await body(request, z.object({ lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180), accuracy: z.number().min(0).max(100000) }));
+  const input = await body(
+    request,
+    z.object({
+      lat: z.number().min(-90).max(90),
+      lng: z.number().min(-180).max(180),
+      accuracy: z.number().min(0).max(100000),
+    }),
+  );
   const sql = await db();
-  const rows = await sql`update location_shares set lat = ${input.lat}, lng = ${input.lng}, accuracy_m = ${Math.round(input.accuracy)}, shared_at = now()
+  const rows =
+    await sql`update location_shares set lat = ${input.lat}, lng = ${input.lng}, accuracy_m = ${Math.round(input.accuracy)}, shared_at = now()
     where child_id = ${auth.user.id} and enabled returning child_id`;
   if (!rows.length) throw forbidden("Location sharing is turned off.");
-  await notify(auth.user.guardian_id, "family", `${auth.user.display_name} shared their location`, "", "/family");
+  await notify(
+    auth.user.guardian_id,
+    "family",
+    `${auth.user.display_name} shared their location`,
+    "",
+    "/family",
+  );
   return { ok: true };
 });
 

@@ -104,7 +104,10 @@ export function InnerSky({ weather, className }: { weather: InnerWeather; classN
             className={motion === "full" ? "sky-drift-slow" : undefined}
             style={
               motion === "full"
-                ? { animationDuration: `${c.speed * (0.6 + weather.wind)}s`, animationDelay: `${c.delay}s` }
+                ? {
+                    animationDuration: `${c.speed * (0.6 + weather.wind)}s`,
+                    animationDelay: `${c.delay}s`,
+                  }
                 : undefined
             }
           >

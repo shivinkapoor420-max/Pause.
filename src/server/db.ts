@@ -7,7 +7,10 @@ import { hashPassword } from "./crypto";
  */
 type Sql = postgres.Sql<Record<string, never>>;
 
-const g = globalThis as unknown as { __pauseSql?: Sql; __pauseMigrated?: Promise<void> | undefined };
+const g = globalThis as unknown as {
+  __pauseSql?: Sql;
+  __pauseMigrated?: Promise<void> | undefined;
+};
 
 export function env(name: string, fallback = ""): string {
   const v = process.env[name];
@@ -17,7 +20,8 @@ export function env(name: string, fallback = ""): string {
 export function getSql(): Sql {
   if (!g.__pauseSql) {
     const url = env("DATABASE_URL");
-    if (!url) throw new Error("DATABASE_URL is not set. Copy .env.example to .env and configure it.");
+    if (!url)
+      throw new Error("DATABASE_URL is not set. Copy .env.example to .env and configure it.");
     g.__pauseSql = postgres(url, {
       max: Number(env("DATABASE_POOL_SIZE", "10")),
       idle_timeout: 30,
@@ -41,8 +45,12 @@ export function ready(): Promise<void> {
     g.__pauseMigrated = (async () => {
       const sql = getSql();
       await sql`create table if not exists schema_migrations (name text primary key, applied_at timestamptz not null default now())`;
-      const done = new Set((await sql<{ name: string }[]>`select name from schema_migrations`).map((r) => r.name));
-      for (const [path, text] of Object.entries(migrations).sort(([a], [b]) => a.localeCompare(b))) {
+      const done = new Set(
+        (await sql<{ name: string }[]>`select name from schema_migrations`).map((r) => r.name),
+      );
+      for (const [path, text] of Object.entries(migrations).sort(([a], [b]) =>
+        a.localeCompare(b),
+      )) {
         const name = path.split("/").pop()!;
         if (done.has(name)) continue;
         await sql.begin(async (tx) => {
@@ -62,18 +70,73 @@ export function ready(): Promise<void> {
 }
 
 const defaultCommunities: [string, string, string, number][] = [
-  ["anxiety-stress", "Anxiety & Stress Support", "A gentle space to talk about worry, pressure and the days that feel like too much.", 260],
-  ["better-sleep", "Better Sleep", "Wind-down routines, restless nights and what helps you rest.", 230],
-  ["mindfulness", "Mindfulness & Meditation", "Practices, questions and quiet wins from sitting still.", 150],
-  ["personal-growth", "Personal Growth", "Small steps, honest reflections, becoming more yourself.", 40],
+  [
+    "anxiety-stress",
+    "Anxiety & Stress Support",
+    "A gentle space to talk about worry, pressure and the days that feel like too much.",
+    260,
+  ],
+  [
+    "better-sleep",
+    "Better Sleep",
+    "Wind-down routines, restless nights and what helps you rest.",
+    230,
+  ],
+  [
+    "mindfulness",
+    "Mindfulness & Meditation",
+    "Practices, questions and quiet wins from sitting still.",
+    150,
+  ],
+  [
+    "personal-growth",
+    "Personal Growth",
+    "Small steps, honest reflections, becoming more yourself.",
+    40,
+  ],
   ["student-life", "Student Life", "Exams, deadlines, moving away and everything in between.", 200],
-  ["work-burnout", "Work Stress & Burnout", "Boundaries, recovery and being more than your job.", 20],
-  ["journaling", "Journaling & Creativity", "Prompts, pages, art and making things to feel better.", 320],
-  ["gratitude", "Gratitude & Positivity", "Noticing the good without pretending the hard stuff isn't there.", 85],
-  ["recovery", "Recovery & Sobriety", "One day at a time. Share milestones, hard days and what's keeping you going — anonymously if you like.", 175],
-  ["one-day-at-a-time", "Cravings & Hard Days", "For the moments that test you. Reach out before, during or after — no judgement here.", 10],
-  ["families-recovery", "Families & Loved Ones", "For people supporting someone in recovery — and looking after themselves too.", 300],
-  ["fitness-wellness", "Fitness & Mental Wellness", "Moving your body for your mind — at any pace.", 120],
+  [
+    "work-burnout",
+    "Work Stress & Burnout",
+    "Boundaries, recovery and being more than your job.",
+    20,
+  ],
+  [
+    "journaling",
+    "Journaling & Creativity",
+    "Prompts, pages, art and making things to feel better.",
+    320,
+  ],
+  [
+    "gratitude",
+    "Gratitude & Positivity",
+    "Noticing the good without pretending the hard stuff isn't there.",
+    85,
+  ],
+  [
+    "recovery",
+    "Recovery & Sobriety",
+    "One day at a time. Share milestones, hard days and what's keeping you going — anonymously if you like.",
+    175,
+  ],
+  [
+    "one-day-at-a-time",
+    "Cravings & Hard Days",
+    "For the moments that test you. Reach out before, during or after — no judgement here.",
+    10,
+  ],
+  [
+    "families-recovery",
+    "Families & Loved Ones",
+    "For people supporting someone in recovery — and looking after themselves too.",
+    300,
+  ],
+  [
+    "fitness-wellness",
+    "Fitness & Mental Wellness",
+    "Moving your body for your mind — at any pace.",
+    120,
+  ],
 ];
 
 const guidelines = `1. Be kind. Everyone here is carrying something.
@@ -115,6 +178,8 @@ export async function db() {
 export async function ensureAliases() {
   const sql = getSql();
   const { generateAlias } = await import("./auth");
-  const rows = await sql`select id from users where community_alias is null and age_group = 'adult'`;
-  for (const r of rows) await sql`update users set community_alias = ${generateAlias() + String(r["id"]).slice(0, 2)} where id = ${r["id"]}`;
+  const rows =
+    await sql`select id from users where community_alias is null and age_group = 'adult'`;
+  for (const r of rows)
+    await sql`update users set community_alias = ${generateAlias() + String(r["id"]).slice(0, 2)} where id = ${r["id"]}`;
 }

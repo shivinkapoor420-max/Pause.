@@ -7,7 +7,11 @@ type Route = { method: string; parts: string[]; handler: Handler };
 
 const routes: Route[] = [];
 
-export function route(method: "GET" | "POST" | "PATCH" | "PUT" | "DELETE", path: string, handler: Handler) {
+export function route(
+  method: "GET" | "POST" | "PATCH" | "PUT" | "DELETE",
+  path: string,
+  handler: Handler,
+) {
   routes.push({ method, parts: path.split("/").filter(Boolean), handler });
 }
 
@@ -49,16 +53,25 @@ export async function dispatch(request: Request, prefix: string): Promise<Respon
         continue;
       }
       for (const [k, v] of Object.entries(params)) {
-        if ((k === "id" || k.endsWith("Id")) && !uuidRe.test(v)) throw new HttpError(404, "Not found.", "not_found");
+        if ((k === "id" || k.endsWith("Id")) && !uuidRe.test(v))
+          throw new HttpError(404, "Not found.", "not_found");
       }
       const result = await r.handler({ request, url, params });
       if (result instanceof Response) return result;
       return json(result ?? { ok: true });
     }
-    throw new HttpError(methodMismatch ? 405 : 404, methodMismatch ? "Method not allowed." : "Not found.", "not_found");
+    throw new HttpError(
+      methodMismatch ? 405 : 404,
+      methodMismatch ? "Method not allowed." : "Not found.",
+      "not_found",
+    );
   } catch (e) {
-    if (e instanceof HttpError) return json({ error: e.message, code: e.code }, { status: e.status });
+    if (e instanceof HttpError)
+      return json({ error: e.message, code: e.code }, { status: e.status });
     console.error("[api]", request.method, url.pathname, e);
-    return json({ error: "Something went wrong on our side. Please try again.", code: "server_error" }, { status: 500 });
+    return json(
+      { error: "Something went wrong on our side. Please try again.", code: "server_error" },
+      { status: 500 },
+    );
   }
 }

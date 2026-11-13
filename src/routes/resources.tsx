@@ -56,7 +56,10 @@ function Resources() {
 
       <div className="mt-5 grid gap-3">
         {shown.map((r, i) => (
-          <article key={r.title} className={`rounded-3xl border-2 border-ink p-5 ${tint[i % tint.length]}`}>
+          <article
+            key={r.title}
+            className={`rounded-3xl border-2 border-ink p-5 ${tint[i % tint.length]}`}
+          >
             <p className="text-xs font-bold uppercase tracking-wide">{r.tag}</p>
             <h3 className="mt-1 font-display text-2xl font-bold">{r.title}</h3>
             <p className="mt-2 text-sm font-semibold">{r.body}</p>

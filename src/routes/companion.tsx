@@ -35,14 +35,16 @@ export const Route = createFileRoute("/companion")({
       { property: "og:title", content: "Talk to Pip — Pause." },
       {
         property: "og:description",
-        content: "A warm AI companion whose only job is to listen, with crisis resources one tap away.",
+        content:
+          "A warm AI companion whose only job is to listen, with crisis resources one tap away.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Talk to Pip — Pause." },
       {
         name: "twitter:description",
-        content: "A warm AI companion whose only job is to listen, with crisis resources one tap away.",
+        content:
+          "A warm AI companion whose only job is to listen, with crisis resources one tap away.",
       },
     ],
   }),
@@ -63,9 +65,24 @@ function CompanionPage() {
 
   if (!ready) return <AppShell title="Companion">{null}</AppShell>;
 
-  if (child && !state.voiceConsent) return <VoiceConsentGate />;
+  // Ages 4–7 never get open AI chat (also enforced on the server).
+  if (state.ageGroup === "early") {
+    return (
+      <AppShell title="Companion">
+        <div className="card-soft p-8 text-center">
+          <p className="text-6xl">🌿</p>
+          <h2 className="mt-3 font-display text-2xl font-bold">Pip says hi!</h2>
+          <p className="mt-2 text-muted-foreground">Let's play a calm game or read a story together instead.</p>
+        </div>
+      </AppShell>
+    );
+  }
 
-  return <Chat key={band} mode={child ? "voice" : "text"} />;
+  // Voice mode needs a speech-to-text provider; without one, children type (or use device dictation).
+  const voiceAvailable = import.meta.env["VITE_VOICE_ENABLED"] === "true";
+  if (child && voiceAvailable && !state.voiceConsent) return <VoiceConsentGate />;
+
+  return <Chat key={band} mode={child && voiceAvailable ? "voice" : "text"} />;
 }
 
 function VoiceConsentGate() {
@@ -83,7 +100,9 @@ function VoiceConsentGate() {
           miss day to day. Before anything is recorded, we need you — the caregiver — to agree:
         </p>
         <ul className="mt-4 space-y-2 text-sm">
-          <li>· Recordings and transcripts stay on this device, and you can delete them any time.</li>
+          <li>
+            · Recordings and transcripts stay on this device, and you can delete them any time.
+          </li>
           <li>· Nothing here is a diagnosis. Tone is an observation, with a confidence level.</li>
           <li>
             · Your child is compared only to their own history — never to other children — and a
@@ -380,8 +399,8 @@ function Chat({ mode }: { mode: "voice" | "text" }) {
 
       {nudge && (
         <p className="mt-4 rounded-2xl border-2 border-border bg-card p-4 text-sm">
-          I'm glad you're here — and I'm not a replacement for the people in your life. If this keeps
-          feeling heavy, a trusted adult or{" "}
+          I'm glad you're here — and I'm not a replacement for the people in your life. If this
+          keeps feeling heavy, a trusted adult or{" "}
           <Link to="/therapist" className="font-bold underline">
             a therapist through Pause.
           </Link>{" "}
@@ -395,8 +414,8 @@ function Chat({ mode }: { mode: "voice" | "text" }) {
             {child ? "What Pause. noticed just now" : "What Pause. noticed"}
           </h3>
           <p className="mt-1 text-sm">
-            Sounds <strong>{latest.state}</strong> · {Math.round(latest.confidence * 100)}% confidence
-            · {latest.energy} energy
+            Sounds <strong>{latest.state}</strong> · {Math.round(latest.confidence * 100)}%
+            confidence · {latest.energy} energy
           </p>
           <p className="mt-1 text-sm text-muted-foreground">{latest.note}</p>
           <p className="mt-2 text-xs text-muted-foreground">

@@ -19,7 +19,8 @@ export const Route = createFileRoute("/weather")({
       { property: "og:title", content: "Your inner weather — Pause." },
       {
         property: "og:description",
-        content: "A living sky for the emotional climate of your week — no numbers, nothing to read as a diagnosis.",
+        content:
+          "A living sky for the emotional climate of your week — no numbers, nothing to read as a diagnosis.",
       },
     ],
   }),
@@ -97,8 +98,11 @@ function WeatherRoom() {
         <p className="font-bold">This is not the patterns view.</p>
         <p className="mt-1 text-muted-foreground">
           The sky is feeling and texture only. Anything worth talking through with a professional
-          lives in <Link to="/dashboard" className="underline">Patterns worth exploring</Link>, kept
-          deliberately separate.
+          lives in{" "}
+          <Link to="/dashboard" className="underline">
+            Patterns worth exploring
+          </Link>
+          , kept deliberately separate.
         </p>
       </div>
 

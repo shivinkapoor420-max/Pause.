@@ -46,13 +46,20 @@ function DataScreen() {
     `Track: ${bandLabel[band]} · ${daysUsing(state)} day(s) of use`,
     "",
     `Daily check-ins (${state.moods.length}):`,
-    ...state.moods.map((m) => `  ${m.date} — ${m.sky}${m.tags.length ? ` (${m.tags.join(", ")})` : ""}`),
+    ...state.moods.map(
+      (m) => `  ${m.date} — ${m.sky}${m.tags.length ? ` (${m.tags.join(", ")})` : ""}`,
+    ),
     "",
     `Deeper check-ins (${state.checkins.length}):`,
-    ...state.checkins.map((c) => `  ${new Date(c.date).toLocaleDateString()} — ${Object.keys(c.answers).length} answered`),
+    ...state.checkins.map(
+      (c) =>
+        `  ${new Date(c.date).toLocaleDateString()} — ${Object.keys(c.answers).length} answered`,
+    ),
     "",
     `Journal entries (${state.journal.length}):`,
-    ...state.journal.map((j) => `  ${new Date(j.date).toLocaleDateString()} (${j.prompt}): ${j.body}`),
+    ...state.journal.map(
+      (j) => `  ${new Date(j.date).toLocaleDateString()} (${j.prompt}): ${j.body}`,
+    ),
     "",
     `Conversations with Pip (${state.companion.length} session(s)):`,
     ...state.companion.flatMap((s) => [
@@ -82,12 +89,17 @@ function DataScreen() {
           of the raw data.
         </p>
         <div className="mt-4 flex flex-wrap gap-3">
-          <PillButton variant="primary" onClick={() => download("pause-everything.txt", readable, "text/plain")}>
+          <PillButton
+            variant="primary"
+            onClick={() => download("pause-everything.txt", readable, "text/plain")}
+          >
             Readable summary (.txt)
           </PillButton>
           <PillButton
             variant="outline"
-            onClick={() => download("pause-data.json", JSON.stringify(state, null, 2), "application/json")}
+            onClick={() =>
+              download("pause-data.json", JSON.stringify(state, null, 2), "application/json")
+            }
           >
             Full data (.json)
           </PillButton>
@@ -133,10 +145,10 @@ function DataScreen() {
       <section className="card-soft mt-4 p-6">
         <h3 className="font-display text-2xl font-bold">Delete all of it</h3>
         <p className="mt-1 text-sm text-muted-foreground">
-          <strong>Delete my data</strong> clears check-ins, journal, conversations and notes but keeps
-          your name, track and settings. <strong>Delete my account</strong> removes every last thing,
-          including who you are, and puts you back at the very first screen. Neither can be undone,
-          and neither leaves a copy behind.
+          <strong>Delete my data</strong> clears check-ins, journal, conversations and notes but
+          keeps your name, track and settings. <strong>Delete my account</strong> removes every last
+          thing, including who you are, and puts you back at the very first screen. Neither can be
+          undone, and neither leaves a copy behind.
         </p>
         <div className="mt-4 flex flex-wrap gap-3">
           <PillButton
@@ -165,7 +177,9 @@ function DataScreen() {
           <PillButton
             variant="coral"
             onClick={() => {
-              if (window.confirm("Delete the account and everything in it? This can't be undone.")) {
+              if (
+                window.confirm("Delete the account and everything in it? This can't be undone.")
+              ) {
                 reset();
                 navigate({ to: "/" });
               }
@@ -179,7 +193,9 @@ function DataScreen() {
       <section className="card-soft mt-4 p-6">
         <h3 className="font-display text-2xl font-bold">What we never do</h3>
         <ul className="mt-3 grid gap-2 text-sm font-semibold">
-          <li className="rounded-2xl bg-muted p-3">No ad tracking and no third-party sales, ever.</li>
+          <li className="rounded-2xl bg-muted p-3">
+            No ad tracking and no third-party sales, ever.
+          </li>
           <li className="rounded-2xl bg-muted p-3">
             Nothing reaches a therapist unless you read it and tap send.
           </li>
@@ -188,7 +204,7 @@ function DataScreen() {
             training.
           </li>
         </ul>
-        <Link to="/consent" className="mt-4 inline-block">
+        <Link to="/welcome" className="mt-4 inline-block">
           <PillButton variant="outline">Re-read the consent text</PillButton>
         </Link>
       </section>

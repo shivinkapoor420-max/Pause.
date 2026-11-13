@@ -1,6 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell, CalmToggle, PillButton, ScreeningNote } from "@/components/app-shell";
-import { CornerBotanicals, WeatherSceneIllustration, WeatherIcon, skyMeta } from "@/components/illustrations";
+import {
+  CornerBotanicals,
+  WeatherSceneIllustration,
+  WeatherIcon,
+  skyMeta,
+} from "@/components/illustrations";
 import { buildPatterns, daysUsing } from "@/lib/insights";
 import { useApp } from "@/lib/app-state";
 
@@ -10,10 +15,14 @@ export const Route = createFileRoute("/dashboard")({
       { title: "Your patterns — Pause." },
       {
         name: "description",
-        content: "Plain-language trends from your own check-ins — no scores, no labels, no diagnoses.",
+        content:
+          "Plain-language trends from your own check-ins — no scores, no labels, no diagnoses.",
       },
       { property: "og:title", content: "Your patterns — Pause." },
-      { property: "og:description", content: "What's been showing up lately, described rather than scored." },
+      {
+        property: "og:description",
+        content: "What's been showing up lately, described rather than scored.",
+      },
     ],
   }),
   component: Dashboard,
@@ -31,7 +40,9 @@ function Dashboard() {
       <WeatherSceneIllustration className="w-full max-w-sm text-ink" />
       <div className="mt-3 flex items-start justify-between gap-3">
         <h2 className="font-display text-4xl font-black tracking-tight">
-          {child ? `What we're noticing about ${state.name || "your child"}` : "What we're noticing"}
+          {child
+            ? `What we're noticing about ${state.name || "your child"}`
+            : "What we're noticing"}
         </h2>
         <CalmToggle />
       </div>

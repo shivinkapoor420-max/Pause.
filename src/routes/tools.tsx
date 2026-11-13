@@ -11,10 +11,14 @@ export const Route = createFileRoute("/tools")({
       { title: "Coping tools — Pause." },
       {
         name: "description",
-        content: "Breathing, grounding, thought reframing and sensory games — regulation tools with no scores and no losing.",
+        content:
+          "Breathing, grounding, thought reframing and sensory games — regulation tools with no scores and no losing.",
       },
       { property: "og:title", content: "Coping tools — Pause." },
-      { property: "og:description", content: "Age-appropriate regulation tools you can use in two minutes." },
+      {
+        property: "og:description",
+        content: "Age-appropriate regulation tools you can use in two minutes.",
+      },
     ],
   }),
   component: Tools,
@@ -34,25 +38,100 @@ type ToolId =
 
 const catalog: Record<string, { id: ToolId; title: string; blurb: string; tint: string }[]> = {
   child: [
-    { id: "breath", title: "Breathing balloon", blurb: "Breathe in as it grows, out as it shrinks.", tint: "bg-primary" },
-    { id: "faces", title: "Which face is it?", blurb: "Tap the face that matches the feeling.", tint: "bg-mustard" },
-    { id: "bubbles", title: "Bubble pop", blurb: "Pop the bubbles. No score, no end.", tint: "bg-lavender" },
-    { id: "routine", title: "Today's picture plan", blurb: "Tap each picture as the day happens.", tint: "bg-blush" },
+    {
+      id: "breath",
+      title: "Breathing balloon",
+      blurb: "Breathe in as it grows, out as it shrinks.",
+      tint: "bg-primary",
+    },
+    {
+      id: "faces",
+      title: "Which face is it?",
+      blurb: "Tap the face that matches the feeling.",
+      tint: "bg-mustard",
+    },
+    {
+      id: "bubbles",
+      title: "Bubble pop",
+      blurb: "Pop the bubbles. No score, no end.",
+      tint: "bg-lavender",
+    },
+    {
+      id: "routine",
+      title: "Today's picture plan",
+      blurb: "Tap each picture as the day happens.",
+      tint: "bg-blush",
+    },
   ],
   teen: [
-    { id: "breath", title: "Breathing balloon", blurb: "Four in, six out. Two minutes.", tint: "bg-primary" },
-    { id: "ground", title: "5-4-3-2-1 grounding", blurb: "Pull attention out of the spiral.", tint: "bg-lavender" },
-    { id: "reframe", title: "Catch the thought", blurb: "Pick the more balanced version.", tint: "bg-blush" },
-    { id: "focus", title: "Focus break", blurb: "A calm timer between check-ins.", tint: "bg-mustard" },
+    {
+      id: "breath",
+      title: "Breathing balloon",
+      blurb: "Four in, six out. Two minutes.",
+      tint: "bg-primary",
+    },
+    {
+      id: "ground",
+      title: "5-4-3-2-1 grounding",
+      blurb: "Pull attention out of the spiral.",
+      tint: "bg-lavender",
+    },
+    {
+      id: "reframe",
+      title: "Catch the thought",
+      blurb: "Pick the more balanced version.",
+      tint: "bg-blush",
+    },
+    {
+      id: "focus",
+      title: "Focus break",
+      blurb: "A calm timer between check-ins.",
+      tint: "bg-mustard",
+    },
   ],
   adult: [
-    { id: "breath", title: "Breathing balloon", blurb: "Paced breathing, four in, six out.", tint: "bg-primary" },
-    { id: "ground", title: "5-4-3-2-1 grounding", blurb: "Anchor back into the room.", tint: "bg-lavender" },
-    { id: "reframe", title: "Catch the thought", blurb: "Pick the more balanced version.", tint: "bg-blush" },
-    { id: "thoughtrecord", title: "Thought record", blurb: "Situation, thought, evidence, rewrite.", tint: "bg-card" },
-    { id: "bodyscan", title: "Body scan", blurb: "Guided, head to feet, six minutes.", tint: "bg-primary" },
-    { id: "breakdown", title: "Task breakdown", blurb: "Shrink the first step until it's boring.", tint: "bg-mustard" },
-    { id: "focus", title: "Focus timer", blurb: "Calm, no ticking, no pressure.", tint: "bg-lavender" },
+    {
+      id: "breath",
+      title: "Breathing balloon",
+      blurb: "Paced breathing, four in, six out.",
+      tint: "bg-primary",
+    },
+    {
+      id: "ground",
+      title: "5-4-3-2-1 grounding",
+      blurb: "Anchor back into the room.",
+      tint: "bg-lavender",
+    },
+    {
+      id: "reframe",
+      title: "Catch the thought",
+      blurb: "Pick the more balanced version.",
+      tint: "bg-blush",
+    },
+    {
+      id: "thoughtrecord",
+      title: "Thought record",
+      blurb: "Situation, thought, evidence, rewrite.",
+      tint: "bg-card",
+    },
+    {
+      id: "bodyscan",
+      title: "Body scan",
+      blurb: "Guided, head to feet, six minutes.",
+      tint: "bg-primary",
+    },
+    {
+      id: "breakdown",
+      title: "Task breakdown",
+      blurb: "Shrink the first step until it's boring.",
+      tint: "bg-mustard",
+    },
+    {
+      id: "focus",
+      title: "Focus timer",
+      blurb: "Calm, no ticking, no pressure.",
+      tint: "bg-lavender",
+    },
   ],
 };
 
@@ -71,7 +150,9 @@ function Breath({ child }: { child: boolean }) {
         <span className="font-display text-xl font-bold">{phase === "in" ? "In…" : "Out…"}</span>
       </div>
       <p className="text-sm text-muted-foreground">
-        {child ? "Big breath as it grows. Let it go as it shrinks." : "Follow the balloon. Four counts in, six out."}
+        {child
+          ? "Big breath as it grows. Let it go as it shrinks."
+          : "Follow the balloon. Four counts in, six out."}
       </p>
     </div>
   );
@@ -96,7 +177,11 @@ function Faces() {
           <button
             key={f.label}
             onClick={() => {
-              setSaid(i === target ? `Yes! That's ${f.label.toLowerCase()}.` : `That one is ${f.label.toLowerCase()}. Try again — both are okay.`);
+              setSaid(
+                i === target
+                  ? `Yes! That's ${f.label.toLowerCase()}.`
+                  : `That one is ${f.label.toLowerCase()}. Try again — both are okay.`,
+              );
               if (i === target) setTarget((target + 1) % feelings.length);
             }}
             className="grid aspect-square place-items-center rounded-3xl border-2 border-ink bg-mustard/70"
@@ -127,7 +212,9 @@ function Bubbles() {
               setBubbles((all) => all.map((x) => (x.id === b.id ? { ...x, popped: true } : x)))
             }
             className={`aspect-square rounded-full border-2 transition-all ${
-              b.popped ? "scale-50 border-dashed border-border bg-transparent" : "border-ink bg-lavender"
+              b.popped
+                ? "scale-50 border-dashed border-border bg-transparent"
+                : "border-ink bg-lavender"
             }`}
             aria-label={b.popped ? "Popped bubble" : "Pop bubble"}
           />
@@ -176,7 +263,10 @@ const reframes = [
   },
   {
     thought: "I got overwhelmed at the shop. I can't handle anything.",
-    options: ["I can't handle anything.", "That shop was loud and bright. My system hit its limit — that's specific, not total."],
+    options: [
+      "I can't handle anything.",
+      "That shop was loud and bright. My system hit its limit — that's specific, not total.",
+    ],
   },
   {
     thought: "I needed a rest day, so I'm lazy.",
@@ -227,7 +317,15 @@ function Reframe() {
 }
 
 function BodyScan() {
-  const parts = ["forehead and jaw", "shoulders", "hands", "chest and breath", "stomach", "legs", "feet"];
+  const parts = [
+    "forehead and jaw",
+    "shoulders",
+    "hands",
+    "chest and breath",
+    "stomach",
+    "legs",
+    "feet",
+  ];
   const [i, setI] = useState(0);
   useEffect(() => {
     const id = setInterval(() => setI((v) => (v + 1) % parts.length), 45000);
@@ -241,7 +339,11 @@ function BodyScan() {
       <p className="mt-3 font-display text-2xl font-bold">
         Bring your attention to your {parts[i]}. Notice, don't fix.
       </p>
-      <PillButton variant="outline" className="mt-6" onClick={() => setI((v) => (v + 1) % parts.length)}>
+      <PillButton
+        variant="outline"
+        className="mt-6"
+        onClick={() => setI((v) => (v + 1) % parts.length)}
+      >
         Move on
       </PillButton>
     </div>
@@ -359,13 +461,15 @@ function FocusTimer() {
           Reset
         </PillButton>
       </div>
-      <p className="mt-4 text-sm text-muted-foreground">No alarm, no ticking. It just quietly ends.</p>
+      <p className="mt-4 text-sm text-muted-foreground">
+        No alarm, no ticking. It just quietly ends.
+      </p>
     </div>
   );
 }
 
 function Tools() {
-  const { state, useTool } = useApp();
+  const { state, useTool: logToolUse } = useApp();
   const band = state.band ?? "adult";
   const child = band === "child";
   const [open, setOpen] = useState<ToolId | null>(null);
@@ -416,7 +520,11 @@ function Tools() {
             <h3 className="font-display text-2xl font-bold">
               {items.find((i) => i.id === open)?.title}
             </h3>
-            <PillButton variant="outline" className="px-4 py-2 text-sm" onClick={() => setOpen(null)}>
+            <PillButton
+              variant="outline"
+              className="px-4 py-2 text-sm"
+              onClick={() => setOpen(null)}
+            >
               ← Back
             </PillButton>
           </div>
@@ -429,7 +537,7 @@ function Tools() {
               key={t.id}
               onClick={() => {
                 setOpen(t.id);
-                useTool(t.id);
+                logToolUse(t.id);
               }}
               className={`rounded-3xl border-2 border-ink p-5 text-left ${t.tint} ${child ? "py-8" : ""}`}
             >

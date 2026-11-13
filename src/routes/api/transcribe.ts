@@ -13,15 +13,25 @@ export const Route = createFileRoute("/api/transcribe")({
         const auth = await getAuth(request);
         if (!auth) return new Response("Please sign in.", { status: 401 });
         const cfg = transcriptionConfig();
-        if (!cfg) return new Response("Voice transcription isn't configured — type instead, or use your browser's dictation.", { status: 503 });
+        if (!cfg)
+          return new Response(
+            "Voice transcription isn't configured — type instead, or use your browser's dictation.",
+            { status: 503 },
+          );
         const form = await request.formData();
         const audio = form.get("audio");
-        if (!(audio instanceof File) || audio.size < 2048) return new Response("That recording was empty — please try again.", { status: 400 });
-        if (audio.size > MAX_BYTES) return new Response("That recording is too long.", { status: 413 });
+        if (!(audio instanceof File) || audio.size < 2048)
+          return new Response("That recording was empty — please try again.", { status: 400 });
+        if (audio.size > MAX_BYTES)
+          return new Response("That recording is too long.", { status: 413 });
         const upstream = new FormData();
         upstream.append("model", cfg.model);
         upstream.append("file", audio, "recording.wav");
-        const response = await fetch(cfg.url, { method: "POST", headers: { Authorization: `Bearer ${cfg.key}` }, body: upstream });
+        const response = await fetch(cfg.url, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${cfg.key}` },
+          body: upstream,
+        });
         if (!response.ok) {
           console.error(`transcription failed [${response.status}]`);
           return new Response("Transcription failed", { status: 502 });

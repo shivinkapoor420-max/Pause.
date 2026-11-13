@@ -13,7 +13,8 @@ import { lazy, useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppStateProvider } from "@/lib/app-state";
-
+import { SessionProvider } from "@/lib/session";
+import { Toaster } from "sonner";
 
 function NotFoundComponent() {
   return (
@@ -82,24 +83,36 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Pause. — Notice your patterns, gently" },
+      { title: "Pause. — Mental wellness for every age" },
       {
         name: "description",
         content:
-          "Start with your age band. Pause. adapts its questions, tone and tools for young children, teens and adults.",
+          "A calm, private mental-wellness space for kids, teens and adults — AI companion, mood tracking, journaling, calming games and an anonymous recovery community.",
       },
-      { property: "og:title", content: "Pause. — Notice your patterns, gently" },
+      { property: "og:title", content: "Pause. — Mental wellness for every age" },
       {
         property: "og:description",
         content:
-          "Start with your age band. Pause. adapts its questions, tone and tools for young children, teens and adults.",
+          "A calm, private mental-wellness space for kids, teens and adults — AI companion, mood tracking, journaling, calming games and an anonymous recovery community.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Pause. — Notice your patterns, gently" },
-      { name: "twitter:description", content: "Start with your age band. Pause. adapts its questions, tone and tools for young children, teens and adults." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ef87c6db-8aee-4599-a244-62ebf769237d/id-preview-9581492b--b0b7bd62-3248-4415-b7da-2ff1af16da8d.lovable.app-1785904790621.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ef87c6db-8aee-4599-a244-62ebf769237d/id-preview-9581492b--b0b7bd62-3248-4415-b7da-2ff1af16da8d.lovable.app-1785904790621.png" },
+      { name: "twitter:title", content: "Pause. — Mental wellness for every age" },
+      {
+        name: "twitter:description",
+        content:
+          "A calm, private mental-wellness space for kids, teens and adults — AI companion, mood tracking, journaling, calming games and an anonymous recovery community.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ef87c6db-8aee-4599-a244-62ebf769237d/id-preview-9581492b--b0b7bd62-3248-4415-b7da-2ff1af16da8d.lovable.app-1785904790621.png",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ef87c6db-8aee-4599-a244-62ebf769237d/id-preview-9581492b--b0b7bd62-3248-4415-b7da-2ff1af16da8d.lovable.app-1785904790621.png",
+      },
     ],
     links: [
       {
@@ -124,7 +137,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" data-age="public" data-theme="meadow">
       <head>
         <HeadContent />
       </head>
@@ -141,11 +154,13 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AppStateProvider>
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
-      </AppStateProvider>
+      <SessionProvider>
+        <AppStateProvider>
+          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+          <Outlet />
+          <Toaster position="top-center" richColors closeButton />
+        </AppStateProvider>
+      </SessionProvider>
     </QueryClientProvider>
   );
 }
-

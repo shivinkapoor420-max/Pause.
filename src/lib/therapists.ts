@@ -159,17 +159,34 @@ export const allInsurance = [...new Set(directory.flatMap((t) => t.insurance))].
  * a pattern is a starting point for a conversation, not a diagnosis.
  */
 export const patternIssueMap: { match: RegExp; issues: string[]; label: string }[] = [
-  { match: /autis|sensory|masking/i, issues: ["Autism", "ADHD", "Coping Skills"], label: "autism-related traits" },
+  {
+    match: /autis|sensory|masking/i,
+    issues: ["Autism", "ADHD", "Coping Skills"],
+    label: "autism-related traits",
+  },
   { match: /sleep/i, issues: ["Sleep or Insomnia", "Stress", "Anxiety"], label: "sleep" },
-  { match: /mood|anxi|low mood|overwhelm|meltdown|heavier/i, issues: ["Anxiety", "Depression", "Stress"], label: "mood and anxiety" },
-  { match: /function|executive|everyday/i, issues: ["ADHD", "Coping Skills", "Life Transitions"], label: "everyday functioning" },
-  { match: /self-harm|risk/i, issues: ["Suicidal Ideation", "Self-Harm", "Trauma and PTSD"], label: "safety" },
+  {
+    match: /mood|anxi|low mood|overwhelm|meltdown|heavier/i,
+    issues: ["Anxiety", "Depression", "Stress"],
+    label: "mood and anxiety",
+  },
+  {
+    match: /function|executive|everyday/i,
+    issues: ["ADHD", "Coping Skills", "Life Transitions"],
+    label: "everyday functioning",
+  },
+  {
+    match: /self-harm|risk/i,
+    issues: ["Suicidal Ideation", "Self-Harm", "Trauma and PTSD"],
+    label: "safety",
+  },
 ];
 
 export function issuesForPatterns(labels: string[]) {
   const out = new Set<string>();
   for (const label of labels)
-    for (const entry of patternIssueMap) if (entry.match.test(label)) entry.issues.forEach((i) => out.add(i));
+    for (const entry of patternIssueMap)
+      if (entry.match.test(label)) entry.issues.forEach((i) => out.add(i));
   return [...out];
 }
 

@@ -23,10 +23,30 @@ export const Route = createFileRoute("/grounding")({
 type ThemeId = "lantern" | "clearing" | "tide" | "nightsky";
 
 const themes: { id: ThemeId; name: string; blurb: string; element: string }[] = [
-  { id: "lantern", name: "Window nook", blurb: "A lantern on the sill, warming and softening.", element: "lantern" },
-  { id: "clearing", name: "Quiet clearing", blurb: "A shape blooming open and closing again.", element: "bloom" },
-  { id: "tide", name: "Slow tide", blurb: "Water reaching up the sand and drawing back.", element: "tide" },
-  { id: "nightsky", name: "Night sky", blurb: "A moon breathing behind thin cloud.", element: "moon" },
+  {
+    id: "lantern",
+    name: "Window nook",
+    blurb: "A lantern on the sill, warming and softening.",
+    element: "lantern",
+  },
+  {
+    id: "clearing",
+    name: "Quiet clearing",
+    blurb: "A shape blooming open and closing again.",
+    element: "bloom",
+  },
+  {
+    id: "tide",
+    name: "Slow tide",
+    blurb: "Water reaching up the sand and drawing back.",
+    element: "tide",
+  },
+  {
+    id: "nightsky",
+    name: "Night sky",
+    blurb: "A moon breathing behind thin cloud.",
+    element: "moon",
+  },
 ];
 
 const IN_MS = 4000;
@@ -68,7 +88,9 @@ function useAmbient(on: boolean, level: "off" | "minimal" | "full") {
 
   useEffect(() => {
     if (!on || level === "off" || typeof window === "undefined") return;
-    const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    const Ctor =
+      window.AudioContext ??
+      (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!Ctor) return;
     const ctx = new Ctor();
     const gain = ctx.createGain();
@@ -123,8 +145,22 @@ function BreathElement({
       <svg viewBox="0 0 120 120" className="size-56 sm:size-72">
         {theme === "lantern" && (
           <g>
-            <circle cx="60" cy="64" r="30" fill="color-mix(in oklch, var(--color-mustard) 75%, transparent)" />
-            <rect x="42" y="40" width="36" height="52" rx="14" fill="none" stroke="var(--color-ink)" strokeWidth="2" />
+            <circle
+              cx="60"
+              cy="64"
+              r="30"
+              fill="color-mix(in oklch, var(--color-mustard) 75%, transparent)"
+            />
+            <rect
+              x="42"
+              y="40"
+              width="36"
+              height="52"
+              rx="14"
+              fill="none"
+              stroke="var(--color-ink)"
+              strokeWidth="2"
+            />
             <path d="M52 34 h16 M60 34 V24" stroke="var(--color-ink)" strokeWidth="2" fill="none" />
           </g>
         )}
@@ -143,7 +179,14 @@ function BreathElement({
                 strokeWidth="1.4"
               />
             ))}
-            <circle cx="60" cy="60" r="9" fill="var(--color-mustard)" stroke="var(--color-ink)" strokeWidth="1.6" />
+            <circle
+              cx="60"
+              cy="60"
+              r="9"
+              fill="var(--color-mustard)"
+              stroke="var(--color-ink)"
+              strokeWidth="1.6"
+            />
           </g>
         )}
         {theme === "tide" && (
@@ -154,14 +197,39 @@ function BreathElement({
               stroke="var(--color-ink)"
               strokeWidth="1.6"
             />
-            <path d="M10 92 q22 -10 44 0 t52 0" fill="none" stroke="var(--color-forest)" strokeWidth="1.2" opacity="0.6" />
+            <path
+              d="M10 92 q22 -10 44 0 t52 0"
+              fill="none"
+              stroke="var(--color-forest)"
+              strokeWidth="1.2"
+              opacity="0.6"
+            />
           </g>
         )}
         {theme === "nightsky" && (
           <g>
-            <circle cx="60" cy="58" r="26" fill="color-mix(in oklch, var(--color-blush) 70%, transparent)" stroke="var(--color-ink)" strokeWidth="1.8" />
-            <path d="M22 84 q20 -10 40 0 t38 -2" fill="none" stroke="var(--color-card)" strokeWidth="6" opacity="0.7" />
-            <path d="M22 84 q20 -10 40 0 t38 -2" fill="none" stroke="var(--color-ink)" strokeWidth="1.1" opacity="0.4" />
+            <circle
+              cx="60"
+              cy="58"
+              r="26"
+              fill="color-mix(in oklch, var(--color-blush) 70%, transparent)"
+              stroke="var(--color-ink)"
+              strokeWidth="1.8"
+            />
+            <path
+              d="M22 84 q20 -10 40 0 t38 -2"
+              fill="none"
+              stroke="var(--color-card)"
+              strokeWidth="6"
+              opacity="0.7"
+            />
+            <path
+              d="M22 84 q20 -10 40 0 t38 -2"
+              fill="none"
+              stroke="var(--color-ink)"
+              strokeWidth="1.1"
+              opacity="0.4"
+            />
           </g>
         )}
       </svg>
@@ -177,7 +245,8 @@ function GroundingRoom() {
   const [sound, setSound] = useState(false);
   const { phase, breaths } = useBreathCycle(active);
   const calm = state.settings.calmMode;
-  const cue: "scale" | "color" = calm || state.settings.motion === "none" ? "color" : state.settings.breathCue;
+  const cue: "scale" | "color" =
+    calm || state.settings.motion === "none" ? "color" : state.settings.breathCue;
 
   useAmbient(active && sound, state.settings.sound === "off" ? "minimal" : state.settings.sound);
 

@@ -107,7 +107,9 @@ export async function getAuth(request: Request): Promise<Auth | null> {
   const token = sessionToken(request);
   if (!token) return null;
   const sql = await db();
-  const rows = await sql<(UserRow & { sid: string; child_mode: boolean; parent_id: string | null })[]>`
+  const rows = await sql<
+    (UserRow & { sid: string; child_mode: boolean; parent_id: string | null })[]
+  >`
     select u.*, s.id as sid, s.child_mode, s.parent_id from sessions s join users u on u.id = s.user_id
     where s.token_hash = ${sha256(token)} and s.expires_at > now() and u.status = 'active'`;
   const row = rows[0];
@@ -147,7 +149,8 @@ export async function requireVerifiedAdult(request: Request) {
 
 export async function requireAdmin(request: Request) {
   const auth = await requireUser(request);
-  if (auth.user.role !== "admin" || auth.childMode) throw forbidden("Administrators only.", "admin_only");
+  if (auth.user.role !== "admin" || auth.childMode)
+    throw forbidden("Administrators only.", "admin_only");
   return auth;
 }
 
@@ -164,7 +167,9 @@ export async function requireGuardianOf(request: Request, childId: string) {
   const auth = await requireUser(request);
   if (auth.childMode || auth.user.age_group !== "adult") throw forbidden();
   const sql = await db();
-  const rows = await sql<UserRow[]>`select * from users where id = ${childId} and guardian_id = ${auth.user.id} and status = 'active'`;
+  const rows = await sql<
+    UserRow[]
+  >`select * from users where id = ${childId} and guardian_id = ${auth.user.id} and status = 'active'`;
   if (!rows[0]) throw forbidden("That profile isn't linked to your account.");
   return { auth, child: rows[0] };
 }
@@ -200,7 +205,13 @@ export function selfView(u: UserRow, extra: { childMode?: boolean; premium?: boo
   };
 }
 
-export async function audit(actorId: string | null, action: string, target = "", meta: Record<string, unknown> = {}, ip = "") {
+export async function audit(
+  actorId: string | null,
+  action: string,
+  target = "",
+  meta: Record<string, unknown> = {},
+  ip = "",
+) {
   const sql = await db();
   await sql`insert into audit_logs (actor_id, action, target, meta, ip) values (${actorId}, ${action}, ${target}, ${sql.json(meta as never)}, ${ip})`;
 }
@@ -210,8 +221,40 @@ export function publicName(u: Pick<UserRow, "identity_mode" | "display_name" | "
   return u.identity_mode === "name" ? u.display_name : (u.community_alias ?? "Member");
 }
 
-const aliasA = ["Quiet", "Gentle", "Steady", "Soft", "Brave", "Calm", "Kind", "Bright", "Still", "Warm", "Hopeful", "Patient", "Rising", "Mellow", "Clear"];
-const aliasB = ["Fern", "River", "Willow", "Harbor", "Meadow", "Cedar", "Sparrow", "Lantern", "Pebble", "Tide", "Maple", "Comet", "Moss", "Heron", "Ember"];
+const aliasA = [
+  "Quiet",
+  "Gentle",
+  "Steady",
+  "Soft",
+  "Brave",
+  "Calm",
+  "Kind",
+  "Bright",
+  "Still",
+  "Warm",
+  "Hopeful",
+  "Patient",
+  "Rising",
+  "Mellow",
+  "Clear",
+];
+const aliasB = [
+  "Fern",
+  "River",
+  "Willow",
+  "Harbor",
+  "Meadow",
+  "Cedar",
+  "Sparrow",
+  "Lantern",
+  "Pebble",
+  "Tide",
+  "Maple",
+  "Comet",
+  "Moss",
+  "Heron",
+  "Ember",
+];
 
 export function generateAlias() {
   const a = aliasA[Math.floor(Math.random() * aliasA.length)]!;
