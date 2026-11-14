@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { db } from "../db";
+import { db, env } from "../db";
 import { getAuth, publicName, requireAdult, requireVerifiedAdult, requireUser } from "../auth";
 import { HttpError, bad, body, clean, forbidden, notFound, rateLimit } from "../http";
 import { route } from "../router";
@@ -418,8 +418,22 @@ route("GET", "/events", async ({ request }) => {
       }, 25000);
       void sql`update users set last_seen_at = now() where id = ${userId}`.catch(() => {});
       send("ready", { ok: true });
+      // Serverless hosts cap request time (Vercel: 300s). End the stream cleanly
+      // a little before that; the browser's EventSource reconnects by itself.
+      const maxMs = env("VERCEL") ? 240_000 : 0;
+      const ender = maxMs
+        ? setTimeout(() => {
+            cleanup();
+            try {
+              controller.close();
+            } catch {
+              /* already closed */
+            }
+          }, maxMs)
+        : null;
       cleanup = () => {
         clearInterval(beat);
+        if (ender) clearTimeout(ender);
         bus.off(`user:${userId}`, onEvent);
       };
       request.signal.addEventListener("abort", () => {
