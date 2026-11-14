@@ -9,7 +9,8 @@ import { appUrl, notify, sendEmail } from "./services";
 const g = globalThis as unknown as { __pauseScheduler?: ReturnType<typeof setInterval> };
 
 export function startScheduler() {
-  if (g.__pauseScheduler || env("DISABLE_SCHEDULER") === "true") return;
+  // Serverless hosts (Vercel) can't keep timers alive; they call /api/v1/cron/tick instead.
+  if (g.__pauseScheduler || env("DISABLE_SCHEDULER") === "true" || env("VERCEL")) return;
   const run = () => void tick().catch((e) => console.error("[scheduler]", e));
   g.__pauseScheduler = setInterval(run, 10 * 60 * 1000);
   setTimeout(run, 15_000);

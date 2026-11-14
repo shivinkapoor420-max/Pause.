@@ -450,3 +450,17 @@ route("POST", "/admin/therapists/:id", async ({ request, params }) => {
 });
 
 export { publicName };
+
+// ================================================================= scheduled jobs (serverless)
+/**
+ * For hosts without long-running processes (e.g. Vercel Cron). Protected by
+ * CRON_SECRET: Vercel sends it as "Authorization: Bearer <CRON_SECRET>".
+ */
+route("GET", "/cron/tick", async ({ request }) => {
+  const { env } = await import("../db");
+  const secret = env("CRON_SECRET");
+  if (!secret || request.headers.get("authorization") !== `Bearer ${secret}`) throw forbidden();
+  const { tick } = await import("../scheduler");
+  await tick();
+  return { ok: true };
+});

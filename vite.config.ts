@@ -12,5 +12,6 @@ export default defineConfig({
   },
   // Pause needs a long-running Node server: a Postgres connection pool and
   // Server-Sent Events for real-time messaging. Override with NITRO_PRESET if needed.
-  nitro: { preset: process.env["NITRO_PRESET"] || "node-server" },
+  // On Vercel (VERCEL=1) build serverless functions; everywhere else a Node server.
+  nitro: { preset: process.env["NITRO_PRESET"] || (process.env["VERCEL"] ? "vercel" : "node-server") },
 });

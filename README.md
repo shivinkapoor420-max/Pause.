@@ -52,6 +52,23 @@ Pause needs a **long-running Node process**, because it keeps a Postgres connect
 | Any VPS / Docker | Same commands; put Nginx or Caddy in front for HTTPS. |
 | Database | Supabase, Neon, RDS or self-hosted Postgres. For Supabase use the *Session pooler* URL and `DATABASE_SSL=require`. |
 
+### Deploying on Vercel
+
+1. In Vercel: **Add New → Project → import** this GitHub repo. Keep the default build settings.
+2. Add a Postgres database: **Storage → Create → Neon** (free tier). Vercel adds `DATABASE_URL` automatically; also set `DATABASE_SSL=require`.
+3. Add environment variables:
+   - `APP_URL`: your https URL.
+   - `SESSION_SECRET`: any long random string.
+   - `CRON_SECRET`: any long random string.
+   - `ADMIN_EMAIL` and `ADMIN_PASSWORD`.
+   - Optionally `REQUIRE_EMAIL_VERIFICATION=false` until you add an email key.
+4. Deploy. Migrations run on the first request.
+
+Notes on Vercel:
+- Reminders and cleanup run from a Vercel Cron job (`vercel.json`), once a day at 19:00 IST on the free Hobby plan. On Pro you can make it more frequent.
+- Real-time messaging uses streaming connections, which Vercel closes after a few minutes; the app reconnects automatically.
+- For a fully always-on setup, Render or Docker (above) is still the better fit.
+
 Production checklist:
 - Set `APP_URL` to your https URL.
 - Set a long random `SESSION_SECRET`.
