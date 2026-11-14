@@ -3,6 +3,7 @@
  * moderation filters, email and XP/achievements.
  */
 import { EventEmitter } from "node:events";
+import postgres from "postgres";
 import { db, env, getSql } from "./db";
 import type { UserRow } from "./auth";
 
@@ -30,11 +31,30 @@ const g = globalThis as unknown as {
 };
 export const bus = g.__pauseBus ?? (g.__pauseBus = new EventEmitter().setMaxListeners(0));
 
+/**
+ * LISTEN needs a direct (session) connection. Connection poolers such as
+ * Neon's or Supabase's transaction pooler drop it, so use the unpooled URL
+ * when the host provides one (Vercel + Neon sets DATABASE_URL_UNPOOLED).
+ */
+let listenClient: ReturnType<typeof getSql> | undefined;
+function listenSql() {
+  const direct = env("DATABASE_URL_UNPOOLED") || env("LISTEN_DATABASE_URL");
+  if (!direct) return getSql();
+  if (!listenClient) {
+    listenClient = postgres(direct, {
+      max: 1,
+      ssl: env("DATABASE_SSL") === "require" ? "require" : false,
+      onnotice: () => {},
+    }) as unknown as ReturnType<typeof getSql>;
+  }
+  return listenClient;
+}
+
 export function ensureListening() {
   if (!g.__pauseListening) {
     g.__pauseListening = (async () => {
       await db();
-      await getSql().listen("pause_events", (payload) => {
+      await listenSql().listen("pause_events", (payload) => {
         try {
           const ev = JSON.parse(payload) as RealtimeEvent;
           for (const u of ev.users) bus.emit(`user:${u}`, ev);
