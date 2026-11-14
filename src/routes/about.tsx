@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { PublicLayout } from "@/components/public-layout";
 
 /** Edit these two lines to change how the founder is named on the page. */
-const FOUNDER_NAME = "Shivin";
+const FOUNDER_NAME = "Shivin Kapoor";
 const FOUNDER_ROLE = "Founder, Pause.";
 
 export const Route = createFileRoute("/about")({
