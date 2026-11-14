@@ -324,6 +324,15 @@ function Settings() {
         </Card>
 
         <Card>
+          <h2 className="font-display text-xl font-bold">Date of birth</h2>
+          <BirthDateForm
+            current={user.birthDate}
+            guardianManaged={!!user.guardianId || user.childMode}
+            onSaved={() => void refresh()}
+          />
+        </Card>
+
+        <Card>
           <h2 className="font-display text-xl font-bold">Your data</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Download everything we hold about you, or delete it all.
@@ -622,6 +631,95 @@ function PhotoUploads({
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function BirthDateForm({
+  current,
+  guardianManaged,
+  onSaved,
+}: {
+  current: string;
+  guardianManaged: boolean;
+  onSaved: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [date, setDate] = useState(current);
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<unknown>(null);
+  const shown = new Date(`${current}T00:00:00`).toLocaleDateString(undefined, {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+  if (guardianManaged) {
+    return (
+      <p className="mt-2 text-sm text-muted-foreground">
+        {shown}. Your parent or guardian can update this from their Family page.
+      </p>
+    );
+  }
+  return (
+    <div className="mt-2">
+      <p className="text-sm text-muted-foreground">
+        {shown} · used only to give you the right experience; never shown to anyone.
+      </p>
+      {!open ? (
+        <button onClick={() => setOpen(true)} className="mt-3 text-sm font-bold underline">
+          Correct my date of birth
+        </button>
+      ) : (
+        <form
+          className="mt-3 space-y-3"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            setError(null);
+            try {
+              await api("/me/birth-date", { body: { birthDate: date, password } });
+              toast.success("Date of birth updated");
+              setOpen(false);
+              setPassword("");
+              onSaved();
+            } catch (err) {
+              setError(err);
+            }
+          }}
+        >
+          <Field
+            label="Date of birth"
+            hint="Adult accounts only. You can correct this once every 90 days."
+          >
+            <input
+              type="date"
+              required
+              value={date}
+              max={new Date().toISOString().slice(0, 10)}
+              onChange={(e) => setDate(e.target.value)}
+              className={inputCls}
+            />
+          </Field>
+          <Field label="Confirm with your password">
+            <input
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={inputCls}
+              autoComplete="current-password"
+            />
+          </Field>
+          <ErrorNote error={error} />
+          <div className="flex gap-2">
+            <PillButton type="submit" variant="forest">
+              Save
+            </PillButton>
+            <PillButton type="button" variant="ghost" onClick={() => setOpen(false)}>
+              Cancel
+            </PillButton>
+          </div>
+        </form>
+      )}
     </div>
   );
 }

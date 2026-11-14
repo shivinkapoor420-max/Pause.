@@ -39,7 +39,7 @@ route("GET", "/notifications/latest", async ({ request }) => {
   const { user } = await requireUser(request);
   const sql = await db();
   const [n] =
-    await sql`select title, body, link from notifications where user_id = ${user.id} and read_at is null order by created_at desc limit 1`;
+    await sql`select kind, title, body, link from notifications where user_id = ${user.id} and read_at is null order by created_at desc limit 1`;
   return { notification: n ?? null };
 });
 

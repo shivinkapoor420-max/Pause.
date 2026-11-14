@@ -434,7 +434,7 @@ export function PillButton({
     <button
       {...rest}
       className={cn(
-        "inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-6 py-3 text-base font-bold transition-all active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50",
+        "inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-6 py-3 text-base font-bold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lift active:translate-y-0 active:scale-[0.96] disabled:pointer-events-none disabled:opacity-50",
         variant === "primary" &&
           "border-2 border-ink bg-primary text-primary-foreground hover:brightness-105",
         variant === "coral" &&

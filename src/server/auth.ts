@@ -202,6 +202,10 @@ export function selfView(u: UserRow, extra: { childMode?: boolean; premium?: boo
     childMode: extra.childMode ?? false,
     premium: extra.premium ?? false,
     createdAt: u.created_at,
+    birthDate:
+      typeof u.birth_date === "string"
+        ? u.birth_date.slice(0, 10)
+        : u.birth_date.toISOString().slice(0, 10),
   };
 }
 

@@ -563,6 +563,74 @@ async function main() {
   }
   check("login brute force is rate limited", limited);
 
+  console.log("\nAdmin premium + date of birth changes");
+  if (process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD) {
+    const boss = new Client("boss");
+    await boss.req("POST", "/auth/login", {
+      login: process.env.ADMIN_EMAIL,
+      password: process.env.ADMIN_PASSWORD,
+    });
+    r = await boss.req("GET", "/auth/me");
+    check("admin is permanently Premium", r.data.user?.premium === true, r.data.user);
+    const bobUser = (await boss.req("GET", `/admin/users?q=bob_${stamp}`)).data.users?.[0];
+    if (bobUser) {
+      r = await boss.req("PATCH", `/admin/users/${bobUser.id}`, { birthDate: "1990-02-02" });
+      check("admin can correct a date of birth", r.status === 200, r.data);
+    }
+  }
+  const carol = new Client("carol");
+  await carol.req("POST", "/auth/signup", {
+    email: `carol_${stamp}@test.dev`,
+    password: "carol-pass-123",
+    username: `carol_${stamp}`,
+    displayName: "Carol",
+    birthDate: "1992-01-01",
+    acceptTerms: true,
+  });
+  r = await carol.req("POST", "/me/birth-date", {
+    birthDate: "2012-01-01",
+    password: "carol-pass-123",
+  });
+  check(
+    "adult can't change themselves into a minor",
+    r.status === 400 && r.data.code === "guardian_required",
+    r.data,
+  );
+  r = await carol.req("POST", "/me/birth-date", {
+    birthDate: "1993-03-03",
+    password: "wrong-pass",
+  });
+  check("date of birth change needs password", r.status === 400);
+  r = await carol.req("POST", "/me/birth-date", {
+    birthDate: "1993-03-03",
+    password: "carol-pass-123",
+  });
+  check("adult corrects own date of birth", r.status === 200, r.data);
+  r = await carol.req("GET", "/auth/me");
+  check("new date of birth saved", r.data.user?.birthDate === "1993-03-03", r.data.user?.birthDate);
+  r = await carol.req("POST", "/me/birth-date", {
+    birthDate: "1994-04-04",
+    password: "carol-pass-123",
+  });
+  check("only one change per 90 days", r.status === 400);
+  r = await sam.req("POST", "/me/birth-date", {
+    birthDate: "1990-01-01",
+    password: "sam-password-1",
+  });
+  check("teen can't make themselves an adult", r.status === 403, r.data);
+  const kids = (await alice.req("GET", "/family/children")).data.children ?? [];
+  const samRow = kids.find((k) => k.ageGroup === "teen");
+  if (samRow) {
+    r = await alice.req("PATCH", `/family/children/${samRow.id}`, { birthDate: "2000-01-01" });
+    check("guardian can't turn a child profile into an adult", r.status === 400);
+    r = await alice.req("PATCH", `/family/children/${samRow.id}`, { birthDate: "2015-06-06" });
+    check("guardian changes child's age", r.status === 200, r.data);
+    const after = (await alice.req("GET", "/family/children")).data.children.find(
+      (k) => k.id === samRow.id,
+    );
+    check("child moves to the right age group", after?.ageGroup === "kids", after?.ageGroup);
+  }
+
   console.log(`\n${passed} passed, ${failed} failed`);
   process.exit(failed ? 1 : 0);
 }

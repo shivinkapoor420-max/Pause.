@@ -16,6 +16,10 @@ export const KIDS_AI_DAILY = 15;
 export async function isPremium(user: Pick<UserRow, "id" | "guardian_id">): Promise<boolean> {
   const sql = await db();
   const ids = [user.id, user.guardian_id].filter(Boolean) as string[];
+  // Platform administrators always have Premium, permanently, without a subscription.
+  const staff =
+    await sql`select 1 from users where id = ${user.id} and role = 'admin' and status = 'active'`;
+  if (staff.length) return true;
   const rows = await sql`select 1 from subscriptions where user_id in ${sql(ids)}
     and status in ('active','trialing','past_due') and (current_period_end is null or current_period_end > now()) limit 1`;
   return rows.length > 0;

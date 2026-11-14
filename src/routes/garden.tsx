@@ -39,62 +39,69 @@ function Sprout({ item }: { item: GardenItem }) {
   const { x, y, scale } = place(item);
   return (
     <g transform={`translate(${x} ${y}) scale(${scale})`}>
-      {item.kind === "leaf" && (
-        <path
-          d="M0 0 C-1 -6 1 -10 4 -12 C4 -7 2 -2 0 0 Z M0 0 V-9"
-          fill="color-mix(in oklch, var(--color-primary) 80%, transparent)"
-          stroke="var(--color-forest)"
-          strokeWidth="0.5"
-        />
-      )}
-      {item.kind === "fern" && (
-        <path
-          d="M0 0 C-3 -6 -2 -12 0 -16 M0 -4 l-3 -2 M0 -8 l3 -2 M0 -12 l-3 -2"
-          fill="none"
-          stroke="var(--color-forest)"
-          strokeWidth="0.6"
-          strokeLinecap="round"
-        />
-      )}
-      {item.kind === "flower" && (
-        <g>
-          <path d="M0 0 V-9" stroke="var(--color-forest)" strokeWidth="0.6" />
-          {[0, 72, 144, 216, 288].map((a) => (
-            <ellipse
-              key={a}
-              cx="0"
-              cy="-12"
-              rx="1.5"
-              ry="3"
-              transform={`rotate(${a} 0 -9)`}
-              fill="color-mix(in oklch, var(--color-blush) 85%, transparent)"
-              stroke="var(--color-ink)"
-              strokeWidth="0.3"
+      <g className="garden-grow" style={{ animationDelay: `${Math.min(item.n, 40) * 60}ms` }}>
+        <g
+          className={item.kind === "stone" ? undefined : "garden-sway"}
+          style={{ animationDelay: `${(item.n % 7) * 0.6}s` }}
+        >
+          {item.kind === "leaf" && (
+            <path
+              d="M0 0 C-1 -6 1 -10 4 -12 C4 -7 2 -2 0 0 Z M0 0 V-9"
+              fill="color-mix(in oklch, var(--color-primary) 80%, transparent)"
+              stroke="var(--color-forest)"
+              strokeWidth="0.5"
             />
-          ))}
-          <circle cx="0" cy="-9" r="1.4" fill="var(--color-mustard)" />
+          )}
+          {item.kind === "fern" && (
+            <path
+              d="M0 0 C-3 -6 -2 -12 0 -16 M0 -4 l-3 -2 M0 -8 l3 -2 M0 -12 l-3 -2"
+              fill="none"
+              stroke="var(--color-forest)"
+              strokeWidth="0.6"
+              strokeLinecap="round"
+            />
+          )}
+          {item.kind === "flower" && (
+            <g>
+              <path d="M0 0 V-9" stroke="var(--color-forest)" strokeWidth="0.6" />
+              {[0, 72, 144, 216, 288].map((a) => (
+                <ellipse
+                  key={a}
+                  cx="0"
+                  cy="-12"
+                  rx="1.5"
+                  ry="3"
+                  transform={`rotate(${a} 0 -9)`}
+                  fill="color-mix(in oklch, var(--color-blush) 85%, transparent)"
+                  stroke="var(--color-ink)"
+                  strokeWidth="0.3"
+                />
+              ))}
+              <circle cx="0" cy="-9" r="1.4" fill="var(--color-mustard)" />
+            </g>
+          )}
+          {item.kind === "stone" && (
+            <ellipse
+              cx="0"
+              cy="-1"
+              rx="3.4"
+              ry="2.1"
+              fill="color-mix(in oklch, var(--color-lavender) 80%, transparent)"
+              stroke="var(--color-ink)"
+              strokeWidth="0.4"
+            />
+          )}
+          {item.kind === "bird" && (
+            <path
+              d="M-4 -18 q2 -2 4 0 q2 -2 4 0"
+              fill="none"
+              stroke="var(--color-ink)"
+              strokeWidth="0.5"
+              strokeLinecap="round"
+            />
+          )}
         </g>
-      )}
-      {item.kind === "stone" && (
-        <ellipse
-          cx="0"
-          cy="-1"
-          rx="3.4"
-          ry="2.1"
-          fill="color-mix(in oklch, var(--color-lavender) 80%, transparent)"
-          stroke="var(--color-ink)"
-          strokeWidth="0.4"
-        />
-      )}
-      {item.kind === "bird" && (
-        <path
-          d="M-4 -18 q2 -2 4 0 q2 -2 4 0"
-          fill="none"
-          stroke="var(--color-ink)"
-          strokeWidth="0.5"
-          strokeLinecap="round"
-        />
-      )}
+      </g>
     </g>
   );
 }

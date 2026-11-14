@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { motion } from "motion/react";
 import { BookOpen, Check, Gamepad2, Heart, Sun, Wind } from "lucide-react";
 import { ProgressRing } from "@/components/kit";
+import { CountUp } from "@/components/motion-kit";
 import { api } from "@/lib/api";
 import { useApp } from "@/lib/app-state";
 import { useSession } from "@/lib/session";
@@ -111,7 +112,15 @@ export function TodayPanel() {
           Lv {t?.level ?? 1}
         </ProgressRing>
         <div>
-          <p className="font-display text-xl font-bold">{t ? `${t.xp} XP` : "…"}</p>
+          <p className="font-display text-xl font-bold">
+            {t ? (
+              <>
+                <CountUp value={t.xp} /> XP
+              </>
+            ) : (
+              "…"
+            )}
+          </p>
           <p className="text-sm text-muted-foreground">
             {t
               ? `You've shown up on ${t.days_showed_up} day${t.days_showed_up === 1 ? "" : "s"}.`

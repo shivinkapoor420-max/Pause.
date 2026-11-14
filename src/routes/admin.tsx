@@ -538,6 +538,17 @@ function Users() {
                     >
                       {u.status === "suspended" ? "Reinstate" : "Suspend"}
                     </button>
+                    <button
+                      onClick={() => {
+                        const d = prompt(
+                          "Correct date of birth (YYYY-MM-DD). This changes their age group immediately and is audit-logged.",
+                        );
+                        if (d) void update(u.id, { birthDate: d.trim() });
+                      }}
+                      className="ml-3 text-xs font-bold underline"
+                    >
+                      Age
+                    </button>
                   </td>
                 </tr>
               ))}

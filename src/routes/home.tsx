@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { LoadingCards } from "@/components/kit";
 import { TodayPanel } from "@/components/today-panel";
+import { BreathOrb, MoodBurst } from "@/components/motion-kit";
 import { LocationShare } from "@/components/location-share";
 import { api } from "@/lib/api";
 import { useSession } from "@/lib/session";
@@ -51,6 +52,7 @@ function lastDays(n: number) {
 function HomeScreen() {
   const { state, ready, setMood } = useApp();
   const { user } = useSession();
+  const [burst, setBurst] = useState<{ sky: Sky | null; key: number }>({ sky: null, key: 0 });
   const navigate = useNavigate();
   const [tags, setTags] = useState<string[]>([]);
   const child = state.band === "child";
@@ -106,7 +108,10 @@ function HomeScreen() {
         </section>
       </Link>
 
-      <section id="mood" className="card-soft mt-6 scroll-mt-20 p-6" data-tour="mood">
+      <BreathOrb />
+
+      <section id="mood" className="card-soft relative mt-6 scroll-mt-20 p-6" data-tour="mood">
+        <MoodBurst sky={burst.sky} burstKey={burst.key} />
         <h3 className="font-display text-2xl font-bold">
           {child ? "How does it feel today?" : "What's your sky today?"}
         </h3>
@@ -122,9 +127,12 @@ function HomeScreen() {
             return (
               <button
                 key={sky}
-                onClick={() => setMood(sky, tags.length ? tags : (todays?.tags ?? []))}
+                onClick={() => {
+                  setMood(sky, tags.length ? tags : (todays?.tags ?? []));
+                  setBurst((b) => ({ sky, key: b.key + 1 }));
+                }}
                 aria-pressed={active}
-                className={`flex flex-col items-center gap-2 rounded-3xl border-2 p-3 transition-transform ${
+                className={`flex flex-col items-center gap-2 rounded-3xl border-2 p-3 transition-transform hover:-translate-y-1 active:scale-95 ${
                   active ? "border-ink bg-primary" : "border-border bg-muted"
                 } ${child ? "py-6" : ""}`}
               >

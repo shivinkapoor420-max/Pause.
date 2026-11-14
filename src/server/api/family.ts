@@ -114,6 +114,10 @@ route("PATCH", "/family/children/:childId", async ({ request, params }) => {
     request,
     z.object({
       displayName: z.string().min(1).max(40).optional(),
+      birthDate: z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/)
+        .optional(),
       password: passwordSchema.optional(),
       controls: z
         .object({
@@ -135,6 +139,18 @@ route("PATCH", "/family/children/:childId", async ({ request, params }) => {
     display_name = ${input.displayName ? clean(input.displayName, 40) : child.display_name},
     prefs = prefs || ${sql.json({ controls } as never)},
     updated_at = now() where id = ${child.id}`;
+  if (input.birthDate) {
+    const group = groupForAge(ageInYears(input.birthDate));
+    if (!group) throw bad("Pause profiles are for ages 4 and up.");
+    if (group === "adult") throw bad("At 18 and over, people create their own Pause account.");
+    await sql`update users set birth_date = ${input.birthDate}, age_group = ${group}, updated_at = now() where id = ${child.id}`;
+    await sql`delete from sessions where user_id = ${child.id}`; // re-enter with the right experience
+    const { audit } = await import("../auth");
+    await audit(child.guardian_id, "family.birth_date", child.id, {
+      from: String(child.birth_date).slice(0, 10),
+      to: input.birthDate,
+    });
+  }
   if (input.password && child.age_group !== "early") {
     await sql`update users set password_hash = ${await hashPassword(input.password)} where id = ${child.id}`;
     await sql`delete from sessions where user_id = ${child.id}`;

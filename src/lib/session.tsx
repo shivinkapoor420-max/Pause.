@@ -29,6 +29,7 @@ export type Me = {
   childMode: boolean;
   premium: boolean;
   createdAt: string;
+  birthDate: string;
 };
 
 type MeResponse = {
@@ -71,6 +72,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     const es = new EventSource("/api/v1/events");
     const refreshMe = () => qc.invalidateQueries({ queryKey: ["me"] });
     es.addEventListener("notification", () => {
+      window.dispatchEvent(new Event("pause:notification"));
       refreshMe();
       qc.invalidateQueries({ queryKey: ["notifications"] });
     });

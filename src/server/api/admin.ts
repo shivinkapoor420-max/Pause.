@@ -60,6 +60,10 @@ route("PATCH", "/admin/users/:id", async ({ request, params }) => {
     z.object({
       role: z.enum(["user", "moderator", "admin"]).optional(),
       status: z.enum(["active", "suspended"]).optional(),
+      birthDate: z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/)
+        .optional(),
       note: z.string().max(500).optional(),
     }),
   );
@@ -72,6 +76,15 @@ route("PATCH", "/admin/users/:id", async ({ request, params }) => {
     throw bad("Only adults can be staff.");
   await sql`update users set role = coalesce(${input.role ?? null}, role), status = coalesce(${input.status ?? null}, status), updated_at = now() where id = ${u["id"]}`;
   if (input.status === "suspended") await sql`delete from sessions where user_id = ${u["id"]}`;
+  if (input.birthDate) {
+    const { ageInYears, groupForAge } = await import("../auth");
+    const group = groupForAge(ageInYears(input.birthDate));
+    if (!group) throw bad("That date gives an age under 4.");
+    if (u["role"] !== "user" && group !== "adult")
+      throw bad("Staff accounts must be adults. Remove the staff role first.");
+    await sql`update users set birth_date = ${input.birthDate}, age_group = ${group}, updated_at = now() where id = ${u["id"]}`;
+    await sql`delete from sessions where user_id = ${u["id"]}`;
+  }
   await sql`insert into moderation_actions (actor_id, target_kind, target_id, action, note) values (${auth.user.id}, 'user', ${u["id"]}, ${`set ${JSON.stringify(input)}`}, ${input.note ?? ""})`;
   await audit(auth.user.id, "admin.user.update", u["id"] as string, input, clientIp(request));
   return { ok: true };

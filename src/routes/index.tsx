@@ -4,6 +4,7 @@ import { BookOpen, Gamepad2, Heart, Lock, Shield, Sprout, Users, Wind } from "lu
 import { PublicLayout } from "@/components/public-layout";
 import { Companion } from "@/components/companion-character";
 import { WeatherIcon } from "@/components/illustrations";
+import { Fireflies, TiltCard } from "@/components/motion-kit";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -86,7 +87,8 @@ const features = [
 function Landing() {
   return (
     <PublicLayout>
-      <section className="mx-auto grid max-w-6xl items-center gap-10 px-5 pt-14 pb-10 lg:grid-cols-2 lg:pt-20">
+      <section className="relative mx-auto grid max-w-6xl items-center gap-10 px-5 pt-14 pb-10 lg:grid-cols-2 lg:pt-20">
+        <Fireflies count={22} />
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -182,24 +184,25 @@ function Landing() {
           {ages.map((a, i) => (
             <motion.div
               key={a.range}
-              className="card-soft lift p-6"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.08 }}
             >
-              <span
-                className="grid size-14 place-items-center rounded-2xl text-3xl"
-                style={{
-                  background: `linear-gradient(135deg, oklch(0.92 0.08 ${a.hue}), oklch(0.82 0.12 ${a.hue + 40}))`,
-                }}
-                aria-hidden="true"
-              >
-                {a.emoji}
-              </span>
-              <p className="mt-4 text-sm font-black text-forest">Ages {a.range}</p>
-              <h3 className="font-display text-2xl font-bold">{a.title}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">{a.body}</p>
+              <TiltCard className="card-soft h-full p-6">
+                <span
+                  className="grid size-14 place-items-center rounded-2xl text-3xl"
+                  style={{
+                    background: `linear-gradient(135deg, oklch(0.92 0.08 ${a.hue}), oklch(0.82 0.12 ${a.hue + 40}))`,
+                  }}
+                  aria-hidden="true"
+                >
+                  {a.emoji}
+                </span>
+                <p className="mt-4 text-sm font-black text-forest">Ages {a.range}</p>
+                <h3 className="font-display text-2xl font-bold">{a.title}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">{a.body}</p>
+              </TiltCard>
             </motion.div>
           ))}
         </div>

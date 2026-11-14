@@ -521,3 +521,48 @@ route("GET", "/journal/suggest", async ({ request }) => {
     return { prompt: fallback() };
   }
 });
+
+/**
+ * Adults can correct their own date of birth — only to another adult date
+ * (minors need a guardian-managed profile), at most once every 90 days,
+ * confirmed with their password, and always audit-logged.
+ */
+route("POST", "/me/birth-date", async ({ request }) => {
+  const auth = await requireUser(request);
+  if (auth.childMode || auth.user.guardian_id)
+    throw forbidden(
+      "Ask your parent or guardian to update your date of birth from their Family page.",
+    );
+  const input = await body(
+    request,
+    z.object({ birthDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), password: z.string() }),
+  );
+  if (!(await verifyPassword(input.password, auth.user.password_hash)))
+    throw bad("Your password isn't right.");
+  const { ageInYears, groupForAge } = await import("../auth");
+  const group = groupForAge(ageInYears(input.birthDate));
+  if (!group) throw bad("Please check that date.");
+  if (group !== "adult") {
+    throw bad(
+      "Accounts for under-18s have to be created by a parent or guardian. If you're under 18, please ask a grown-up to set you up from their Family page.",
+      "guardian_required",
+    );
+  }
+  const last = auth.user.prefs["dobChangedAt"] as string | undefined;
+  if (last && Date.now() - new Date(last).getTime() < 90 * 86400000 && auth.user.role !== "admin") {
+    throw bad(
+      "You've changed your date of birth recently. Contact us if it still needs correcting.",
+    );
+  }
+  const sql = await db();
+  await sql`update users set birth_date = ${input.birthDate}, age_group = ${group},
+    prefs = prefs || ${sql.json({ dobChangedAt: new Date().toISOString() } as never)}, updated_at = now() where id = ${auth.user.id}`;
+  await audit(
+    auth.user.id,
+    "account.birth_date",
+    auth.user.id,
+    { from: String(auth.user.birth_date).slice(0, 10), to: input.birthDate },
+    clientIp(request),
+  );
+  return { ok: true, ageGroup: group };
+});

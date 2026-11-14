@@ -396,6 +396,7 @@ function ChildCard({ child, hasPin }: { child: any; hasPin: boolean }) {
           </PillButton>
         )}
         {child.ageGroup !== "early" && <ResetPassword childId={child.id} />}
+        <ChangeBirthDate childId={child.id} name={child.displayName} />
         <PillButton
           variant="ghost"
           className="text-destructive"
@@ -503,3 +504,47 @@ function Stat({ n, label }: { n: number | undefined; label: string }) {
 }
 
 export { Badge };
+
+function ChangeBirthDate({ childId, name }: { childId: string; name: string }) {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [date, setDate] = useState("");
+  if (!open)
+    return (
+      <PillButton variant="outline" onClick={() => setOpen(true)}>
+        Change age
+      </PillButton>
+    );
+  return (
+    <form
+      className="flex flex-wrap gap-2"
+      onSubmit={async (e) => {
+        e.preventDefault();
+        try {
+          await api(`/family/children/${childId}`, { method: "PATCH", body: { birthDate: date } });
+          toast.success(`${name}'s age updated — their experience now matches it`);
+          setOpen(false);
+          void qc.invalidateQueries({ queryKey: ["family"] });
+        } catch (err) {
+          toast.error(err instanceof Error ? err.message : "Couldn't update");
+        }
+      }}
+    >
+      <input
+        type="date"
+        required
+        aria-label={`${name}'s date of birth`}
+        value={date}
+        max={new Date().toISOString().slice(0, 10)}
+        onChange={(e) => setDate(e.target.value)}
+        className={`${inputCls} w-auto py-2`}
+      />
+      <PillButton type="submit" variant="forest">
+        Save
+      </PillButton>
+      <PillButton type="button" variant="ghost" onClick={() => setOpen(false)}>
+        Cancel
+      </PillButton>
+    </form>
+  );
+}

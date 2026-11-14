@@ -14,6 +14,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppStateProvider } from "@/lib/app-state";
 import { SessionProvider } from "@/lib/session";
+import { AchievementWatcher, MotionPrefs } from "@/components/motion-kit";
 import { Toaster } from "sonner";
 
 function NotFoundComponent() {
@@ -157,7 +158,10 @@ function RootComponent() {
       <SessionProvider>
         <AppStateProvider>
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-          <Outlet />
+          <MotionPrefs>
+            <Outlet />
+            <AchievementWatcher />
+          </MotionPrefs>
           <Toaster position="top-center" richColors closeButton />
         </AppStateProvider>
       </SessionProvider>

@@ -18,7 +18,7 @@ export function WeatherIcon({ sky, className = "" }: { sky: Sky; className?: str
   return (
     <svg viewBox="0 0 48 48" className={className} aria-hidden="true">
       {sky === "sunny" && (
-        <g {...common}>
+        <g {...common} className="wx-sun">
           <circle cx="24" cy="24" r="8" />
           {[0, 45, 90, 135, 180, 225, 270, 315].map((a) => (
             <line
@@ -32,28 +32,28 @@ export function WeatherIcon({ sky, className = "" }: { sky: Sky; className?: str
         </g>
       )}
       {sky === "partly" && (
-        <g {...common}>
-          <circle cx="31" cy="17" r="6" />
+        <g {...common} className="wx-drift">
+          <circle className="wx-pulse" cx="31" cy="17" r="6" />
           <path d="M12 34c-3 0-5-2-5-5s2-5 5-5c0-4 3-7 7-7s7 3 7 7c3 0 5 2 5 5s-2 5-5 5z" />
         </g>
       )}
       {sky === "cloudy" && (
-        <g {...common}>
+        <g {...common} className="wx-drift">
           <path d="M14 33c-4 0-7-3-7-6s3-6 6-6c1-5 5-8 10-8s9 4 9 9c4 0 7 2 7 5.5S36 33 32 33z" />
         </g>
       )}
       {sky === "rainy" && (
         <g {...common}>
           <path d="M14 28c-4 0-7-3-7-6s3-6 6-6c1-5 5-8 10-8s9 4 9 9c4 0 7 2 7 5.5S36 28 32 28z" />
-          <line x1="17" y1="33" x2="15" y2="39" />
-          <line x1="25" y1="33" x2="23" y2="41" />
-          <line x1="33" y1="33" x2="31" y2="39" />
+          <line className="wx-drop" x1="17" y1="33" x2="15" y2="39" />
+          <line className="wx-drop" x1="25" y1="33" x2="23" y2="41" />
+          <line className="wx-drop" x1="33" y1="33" x2="31" y2="39" />
         </g>
       )}
       {sky === "stormy" && (
         <g {...common}>
           <path d="M14 26c-4 0-7-3-7-6s3-6 6-6c1-5 5-8 10-8s9 4 9 9c4 0 7 2 7 5.5S36 26 32 26z" />
-          <path d="M26 29l-8 7h6l-3 7 10-9h-6z" />
+          <path className="wx-bolt" d="M26 29l-8 7h6l-3 7 10-9h-6z" />
         </g>
       )}
     </svg>
